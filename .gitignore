@@ -1,0 +1,15 @@
+*~
+.DS_Store
+
+node_modules/*
+
+/client/assets/node_modules/*
+
+/client/app/*.js
+/client/app/*.js.map
+
+/client/assets/js/utils.js
+/client/assets/js/utils.js.map
+
+
+
