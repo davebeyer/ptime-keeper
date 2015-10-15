@@ -10,6 +10,9 @@ import {ROUTER_PROVIDERS, RouteConfig, Router}                   from 'angular2/
 import {Route, Location, LocationStrategy, HashLocationStrategy} from 'angular2/router';
 import {RouterLink, RouterOutlet}                                from 'angular2/router';
 
+import {Header}    from './header';
+import {Footer}    from './footer';
+
 import {UserBlock} from './users';
 import {SignIn}    from './signin';
 import {Plan}      from './plan';
@@ -23,14 +26,18 @@ var Firebase   = require('firebase/lib/firebase-web.js');
 })
 
 @View({
-    directives: [RouterLink, RouterOutlet, UserBlock],
+    directives: [RouterLink, RouterOutlet, UserBlock, Header, Footer],
 
     template: `
+        <header></header>
+
         <user-block (initevent)="registerUserBlock($event)"> </user-block>
 
         <div class="container">
           <router-outlet></router-outlet>
         </div>
+
+        <footer></footer>
         `
 })
 

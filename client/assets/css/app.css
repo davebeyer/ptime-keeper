@@ -1,0 +1,5 @@
+/* Leave room for nav header & footer fixed to the top & bottom */
+body { 
+  padding-top:    70px; 
+  padding-bottom: 70px; 
+}
