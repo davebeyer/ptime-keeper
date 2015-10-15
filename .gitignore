@@ -11,5 +11,7 @@ node_modules/*
 /client/assets/js/utils.js
 /client/assets/js/utils.js.map
 
+/log/*
+
 
 

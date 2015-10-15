@@ -5,11 +5,11 @@
 require("firebase");
 require("bootstrap");
 
-import {Component, View, bootstrap, provide}   from 'angular2/angular2';
+import {Component, View, bootstrap, provide}                     from 'angular2/angular2';
 
-// TODO: May be redudnancy in following?
-import {ROUTER_PROVIDERS, LocationStrategy, HashLocationStrategy} from 'angular2/router';
-import {ROUTER_DIRECTIVES, RouteConfig, RouterLink, RouterOutlet, Router, Location, Route} from 'angular2/router';
+import {ROUTER_PROVIDERS, RouteConfig, Router}                   from 'angular2/router';
+import {Route, Location, LocationStrategy, HashLocationStrategy} from 'angular2/router';
+import {RouterLink, RouterOutlet}                                from 'angular2/router';
 
 import {UserBlock} from './users';
 import {SignIn}    from './signin';
@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
               // List of universally injectable providers
               [
-                  ROUTER_PROVIDERS, 
+		  ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
               ]
 
