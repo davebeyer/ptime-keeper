@@ -16,21 +16,20 @@ declare var jQuery:any;
     template: `
 	<nav class="navbar navbar-default navbar-fixed-top">
 	  <div class="container">
-	    <div class="navbar-header">
-              <ul class="nav nav-pills">
-                <li role="presentation" class="navbar-text">Study Tracker</li>
-                <li role="presentation" class="dropdown pull-right">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> 
+	    <div class="row" style="padding-top: 8px">
+                <h4 class="col-xs-6">Study Tracker</h4>
+
+                <div class="col-xs-4 col-xs-offest-2 dropdown pull-right">
+                  <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                     Dave <span class="caret"></span>
-                  </a>
+                  </button>
                   <ul class="dropdown-menu">
                     <li>Dave Beyer</li>
                     <li role="seperator" class="divider"></li>
                     <li><a href="#">Account info</li>
                     <li><a href="#">Sign out</li>
                   </ul>
-                </li>
-              </ul>
+                </div>
             </div>
 	  </div>
 	</nav>
