@@ -1,0 +1,6 @@
+npm install
+pkill -f 'gulp'
+gulp build-dev
+
+
+

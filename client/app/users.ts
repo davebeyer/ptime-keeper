@@ -1,5 +1,4 @@
-/// <reference path="../../typings/angular2/angular2.d.ts" />
-/// <reference path="../../typings/jquery/jquery.d.ts" />
+/// <reference path="../../node_modules/angular2/angular2.d.ts" />
 /// <reference path="../../typings/firebase/firebase.d.ts" />
 
 import {Component, View, EventEmitter} from 'angular2/angular2';
@@ -56,7 +55,7 @@ export class UserBlock {
     initevent     : EventEmitter;
 
     constructor() {
-        console.log("main.ts: in UserBlock constructor")
+        console.log("users.ts: in UserBlock constructor")
 
         // Only initialize locally instatiated data here 
         // (angular2-dependent data has not yet been fully initialized)
@@ -71,7 +70,7 @@ export class UserBlock {
         // Initialize
         this.updateUserData(null);
 
-        console.log("main.ts: finished UserBlock constructor")
+        console.log("users.ts: finished UserBlock constructor")
     }
 
     onInit() {
