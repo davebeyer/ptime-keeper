@@ -2,7 +2,6 @@
 /// <reference path="../../typings/firebase/firebase.d.ts" />
 /// <reference path="../../typings/requirejs/require.d.ts" />
 
-require("firebase");
 require("bootstrap");
 
 import {Component, View, bootstrap, provide}                     from 'angular2/angular2';
