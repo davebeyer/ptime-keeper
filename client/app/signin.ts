@@ -22,5 +22,6 @@ declare var jQuery:any;
 export class SignIn {
 
     constructor() {
+        console.log("signin.ts: in constructor")
     }
 }
