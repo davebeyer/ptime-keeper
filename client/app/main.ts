@@ -15,7 +15,10 @@ import {Footer}    from './footer';
 
 import {UserBlock} from './users';
 import {SignIn}    from './signin';
+
 import {Plan}      from './plan';
+import {Work}      from './work';
+import {History}   from './history';
 
 declare var jQuery:any;
 
@@ -42,8 +45,10 @@ var Firebase   = require('firebase/lib/firebase-web.js');
 })
 
 @RouteConfig([
-    { path: '/plan',    as: 'Plan',   component: Plan },
-    { path: '/signin',  as: 'SignIn', component: SignIn }
+    { path: '/plan',    as: 'Plan',    component: Plan },
+    { path: '/work',    as: 'Work',    component: Work },
+    { path: '/history', as: 'History', component: History },
+    { path: '/signin',  as: 'SignIn',  component: SignIn }
 ])
 
 class StudyTracker {

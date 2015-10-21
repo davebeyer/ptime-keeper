@@ -14,64 +14,41 @@ declare var jQuery:any;
     directives: [RouterLink, NgClass],
 
     template: `
-	<nav class="navbar navbar-default navbar-fixed-bottom">
-	  <div class="container">
-	    <div class="navbar-header">
+        <nav class="navbar navbar-default navbar-fixed-bottom">
+          <div class="container">
+            <div class="navbar-header">
               <ul class="nav nav-tabs" style="width:100%">
-	        <li role="presentation" [ng-class]="planClassMap">   <a href="#" [router-link]="['/Plan']"> Plan    </a>    </li>
-	        <li role="presentation" [ng-class]="workClassMap">   <a href="#" [router-link]="['/SignIn']">Work   </a>    </li>
-          	<li role="presentation" [ng-class]="historyClassMap"><a href="#" (click)="goto($event, 'history')">  History </a> </li>
+                <li role="presentation" [class.active]="currentTab=='Plan'">   <a href="#" (click)="goto($event, 'Plan')">   Plan   </a>    </li>
+                <li role="presentation" [class.active]="currentTab=='Work'">   <a href="#" (click)="goto($event, 'Work')">   Work   </a>    </li>
+                <li role="presentation" [class.active]="currentTab=='History'"><a href="#" (click)="goto($event, 'History')">History</a> </li>
               </ul>
-	    </div>
-	  </div>
-	</nav>
+            </div>
+          </div>
+        </nav>
         `
 })
 
 export class Footer {
     router          : Router;
 
-    historyClassMap : any;
-    workClassMap    : any;
-    planClassMap    : any;
+    currentTab      : string;
 
     constructor(router : Router) {
         console.log("footer.ts: in constructor")
-	this.router = router;
-	this.activateTab('plan');
-    }
-
-    deactivateTabs() {
-	this.planClassMap    = {active : false};
-	this.workClassMap    = {active : false};
-	this.historyClassMap = {active : false};
-    }
-
-    activateTab(tabStr) {
-	this.deactivateTabs();
-
-	switch(tabStr) {
-	case 'plan':
-	    this.planClassMap.active = true;
-	    break;
-	case 'work':
-	    this.workClassMap.active = true;
-	    break;
-	case 'history':
-	    this.historyClassMap.active = true;
-	    break;
-	}
+        this.router     = router;
+        this.currentTab = 'Plan';
     }
 
     goto($event, tabStr) {
-	console.log("Navigating to", tabStr);
+        console.log("Navigating to", tabStr);
 
-	// NOTE: here we use the router *name* not the actual route URL!
-	this.router.navigate(['./SignIn']);    // SignIn
+        // Using router.navigate() rather than router-link in template to 
+        // ensure that tab styling also changes in footer (via this.currentTab)
 
-	this.activateTab('signin');
+        this.router.navigate(['./' + tabStr]); 
+        this.currentTab = tabStr;
 
-	return true;
+        return true;
     }
 }
 

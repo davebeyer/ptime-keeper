@@ -6,7 +6,7 @@ import {Component, View}   from 'angular2/angular2';
 declare var jQuery:any;
 
 @Component({
-    selector: 'plan'
+    selector: 'plan-block'
 })
 
 @View({
