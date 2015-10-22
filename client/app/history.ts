@@ -2,7 +2,8 @@
 /// <reference path="../../typings/firebase/firebase.d.ts" />
 /// <reference path="../../typings/requirejs/require.d.ts" />
 
-import {Component, View}          from 'angular2/angular2';
+import {Component, View}                from 'angular2/angular2';
+import {CanReuse, ComponentInstruction} from 'angular2/router';
 
 declare var jQuery:any;
 
@@ -16,9 +17,13 @@ declare var jQuery:any;
         `
 })
 
-export class History {
+export class History implements CanReuse {
 
     constructor() {
         console.log("history.ts: in constructor")
+    }
+
+    canReuse(next: ComponentInstruction, prev: ComponentInstruction) {
+	return true;
     }
 }

@@ -82,19 +82,19 @@ export class UserBlock {
     }
 
     registerParent(parent, fbRef) {
-	var self = this;
+	var _this = this;
 
 	this.fbRef  = fbRef;
 	this.parent = parent;
 
         // Register the authentication callback
         this.fbRef.onAuth(function(authData) {
-            self.updateUserData(authData);
+            _this.updateUserData(authData);
         });
     }
 
     login(provider) {
-	var self = this;
+	var _this = this;
 
         if (provider === 'facebook') {
             alert("Sorry, Facebook signin not yet supported");
@@ -105,7 +105,7 @@ export class UserBlock {
             if (error) {
                 if (error.code === "TRANSPORT_UNAVAILABLE") {
                     // Could be due to not allowing pop-ups in this env
-                    self.fbRef.authWithOAuthRedirect("google", function(error) {
+                    _this.fbRef.authWithOAuthRedirect("google", function(error) {
                         if (error) {
                             console.log("Login Failed!", error);
                         } 
@@ -114,7 +114,7 @@ export class UserBlock {
                     console.log("Login Failed!", error);
                 }
             } else if (authData) {
-                self.updateUserData(authData); // accelerate the process a little
+                _this.updateUserData(authData); // accelerate the process a little
                 console.log("Authenticated successfully with payload:", authData);
             } else {
                 console.log("Login apparently failed, but without error info");

@@ -18,9 +18,15 @@ declare var jQuery:any;
           <div class="container">
             <div class="navbar-header">
               <ul class="nav nav-tabs" style="width:100%">
-                <li role="presentation" [class.active]="currentTab=='Plan'">   <a href="#" (click)="goto($event, 'Plan')">   Plan   </a>    </li>
-                <li role="presentation" [class.active]="currentTab=='Work'">   <a href="#" (click)="goto($event, 'Work')">   Work   </a>    </li>
-                <li role="presentation" [class.active]="currentTab=='History'"><a href="#" (click)="goto($event, 'History')">History</a> </li>
+                <li role="presentation" [class.active]="currentTab=='plan'">   
+                  <a href="#" [router-link]="['/Plan']">   Plan   </a>    
+                </li>
+                <li role="presentation" [class.active]="currentTab=='work'">   
+                  <a href="#" [router-link]="['/Work']">   Work   </a>    
+                </li>
+                <li role="presentation" [class.active]="currentTab=='history'">
+                  <a href="#" [router-link]="['/History']">History</a> 
+                </li>
               </ul>
             </div>
           </div>
@@ -30,25 +36,22 @@ declare var jQuery:any;
 
 export class Footer {
     router          : Router;
-
     currentTab      : string;
 
     constructor(router : Router) {
         console.log("footer.ts: in constructor")
         this.router     = router;
-        this.currentTab = 'Plan';
+        this.currentTab = '';
     }
 
-    goto($event, tabStr) {
-        console.log("Navigating to", tabStr);
-
-        // Using router.navigate() rather than router-link in template to 
-        // ensure that tab styling also changes in footer (via this.currentTab)
-
-        this.router.navigate(['./' + tabStr]); 
-        this.currentTab = tabStr;
-
-        return true;
+    onInit() {
+	var _this = this;
+        this.router.subscribe(function(url) {
+	    // strange(?) that router emits an url and not 
+	    // a more parseable instruction
+	    _this.currentTab = url;
+            console.log("router navigated to", url);
+        });
     }
 }
 

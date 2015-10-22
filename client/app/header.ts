@@ -24,10 +24,10 @@ declare var jQuery:any;
                     Dave <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
-                    <li>Dave Beyer</li>
+                    <li><a href="#">Dave Beyer</a></li>
                     <li role="seperator" class="divider"></li>
-                    <li><a href="#">Account info</li>
-                    <li><a href="#">Sign out</li>
+                    <li><a href="#">Account info</a></li>
+                    <li><a href="#">Sign out</a></li>
                   </ul>
                 </div>
             </div>

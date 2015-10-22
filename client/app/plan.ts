@@ -1,7 +1,8 @@
 /// <reference path="../../node_modules/angular2/angular2.d.ts" />
 /// <reference path="../../typings/requirejs/require.d.ts" />
 
-import {Component, View}   from 'angular2/angular2';
+import {Component, View}                from 'angular2/angular2';
+import {CanReuse, ComponentInstruction} from 'angular2/router';
 
 declare var jQuery:any;
 
@@ -19,9 +20,13 @@ declare var jQuery:any;
         `
 })
 
-export class Plan {
+export class Plan implements CanReuse {
     constructor() {
         console.log("plan.ts: in constructor")
+
+    }
+
+    onInit() {
 
         var data = [{ id: 1, color: 'blue',    name: 'Science' }, 
                     { id: 2, color: 'red',     name: 'Math' }, 
@@ -63,6 +68,10 @@ export class Plan {
 	jQuery('body').on('touchstart.dropdown', '.dropdown-menu', function (e) { 
 	    e.stopPropagation(); 
 	});
+    }
+
+    canReuse(next: ComponentInstruction, prev: ComponentInstruction) {
+	return true;
     }
 }
 
