@@ -8,6 +8,8 @@ import {Typeahead} from './typeahead';
 
 declare var jQuery:any;
 
+const NEW_CLASS_ID = -1;
+
 @Component({
     selector: 'plan-block'
 })
@@ -16,11 +18,11 @@ declare var jQuery:any;
     directives: [Typeahead],
 
     template: `
-      <typeahead compid="category-select" placeholder="Enter a class" [options]="classOptions" [newoption]="newOption" (select)="selectClass($event, item)">
+      <typeahead placeholder="Enter a class" [options]="classOptions" [newoption]="newOption" (select)="selectClass($event, item)">
       </typeahead>
 
-      <div class="collapse" id="category-add">
-        Select a color for new class <b id="category-add-name"></b>
+      <div  [hidden]="!addNewClass">
+        Select a color for new class <b>{{newClass}}</b>
       </div>
         `
 })
@@ -28,26 +30,42 @@ declare var jQuery:any;
 export class Plan implements CanReuse {
     classOptions : Array<any>;
     newOption    : any;
+    newClass     : string;
+    addNewClass  : boolean;
 
     constructor() {
         console.log("plan.ts: in constructor")
     }
 
     onInit() {
+        this.newClass     = '';
+        this.addNewClass  = false;
+
+        this.newOption    = {id : NEW_CLASS_ID, name : "Add class"};
+
         this.classOptions = [{ id: 1, color: 'blue',    name: 'Science' }, 
                              { id: 2, color: 'red',     name: 'Math' }, 
                              { id: 3, color: '#AA22BB', name: 'English' }, 
                              { id: 4, color: '#222',    name: 'Art' }];
-
-        this.newOption    = { id: -1, name: '(Add class)' }
     }
 
     selectClass(item) {
         console.log("plan.ts: Select class", item);
 
-        if (item.id === -1) {
-            jQuery("#category-add-name").text(item.name);
+        switch(item.id) {
+        case NEW_CLASS_ID:
+            this.newClass = item.name;
+            this.addNewClass  = true;
             jQuery("#category-add").show();
+            break;
+        case null:
+            this.newClass = '';
+            this.addNewClass  = true;
+            jQuery("#category-add").show();
+            break;
+        default:
+            this.addNewClass  = false;
+            break;
         }
     }
 
@@ -55,4 +73,3 @@ export class Plan implements CanReuse {
         return true;
     }
 }
-

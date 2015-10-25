@@ -1,31 +1,38 @@
 /// <reference path="../../node_modules/angular2/angular2.d.ts" />
 /// <reference path="../../typings/requirejs/require.d.ts" />
 
-import {Component, View, EventEmitter}    from 'angular2/angular2';
+import {Component, View, EventEmitter, ElementRef} from 'angular2/angular2';
 
 declare var jQuery:any;
 
+// 
+// jquery Bootstrap3-Typeahead wrapper for Angular2
+//
+// https://github.com/bassjobsen/Bootstrap-3-Typeahead
+// 
+
 @Component({
     selector: 'typeahead',
-    properties: ['options', 'newoption', 'compid', 'placeholder'],
+    properties: ['options', 'newoption', 'placeholder'],
     events:     ['select']
 })
 
 @View({
     template: `
-        <input type="text" data-provide="typeahead" id="{{compid}}" placeholder="{{placeholder}}">
+        <input type="text" data-provide="typeahead"  placeholder="{{placeholder}}">
     `
 })
 
 export class Typeahead {
-    compid      : string;
     placeholder : string;
     options     : Array<any>;
     newoption   : any;
     select      : EventEmitter;
+    elemRef     : any;
     
-    constructor() {
-        this.select = new EventEmitter();
+    constructor(elemRef : ElementRef) {
+        this.elemRef = elemRef;
+        this.select  = new EventEmitter();
     }
 
     // Lifecycle call after view has been fully initialized 
@@ -33,11 +40,20 @@ export class Typeahead {
     afterViewInit() {
         var _this = this;
 
-        jQuery("#" + _this.compid).typeahead({
+        var $obj   = jQuery(this.elemRef.nativeElement);
+        var $input = $obj.find("input");
+        
+        var newItem;
+        if (!_this.newoption) {
+	    _this.newoption = false;
+        }
+
+        $input.typeahead({
             source          : _this.options,
             minLength       : 0,
             showHintOnFocus : true,
             addItem         : _this.newoption,
+
             formatter   : function(item) {
                 var html = this.highlighter(this.displayText(item));
                 if (item.color) {
@@ -47,18 +63,27 @@ export class Typeahead {
                 }
                 return html
             },
+
             afterSelect     : function(item) {
                 console.log("Selected", item);
                 _this.select.next(item);
             },
-            updater         : function(item) {
-                return item;
 
-                // if (item.id === -1) {
-                //     return {id : -2, name : _this.$element.val() };
-                // } else {
-                //     return item;
-                // }
+            updater         : function(item) {
+                if (_this.newoption) {
+                    if (item.id == _this.newoption.id) {
+                        var val = this.$element.val();
+                        if (!val.trim() || val == _this.newoption.name) {
+                            // return id of null to indicate that user wants to add a new
+                            // item but hasn't entered anything for it yet
+                            return {id : null, name : item.name};
+                        } else {
+                            return {id : _this.newoption.id, name : val};
+                        }
+                    } 
+                }
+
+                return item;
             }
         });
 
