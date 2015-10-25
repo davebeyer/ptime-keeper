@@ -11,7 +11,7 @@ import {Component, View, NgFor, EventEmitter} from 'angular2/angular2';
 })
 
 @View({
-    template: `
+    templateUrl: `
         <select class="form-control"  (change)="handleSelect($event)" id="{{id}}">
           <option value="-1">Select {{name}}</option>
           <option *ng-for="#opt of options" value="{{opt}}">{{opt}}</option>
