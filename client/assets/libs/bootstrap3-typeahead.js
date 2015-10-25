@@ -398,7 +398,7 @@
     click: function (e) {
       e.preventDefault();
       this.select();
-      this.$element.focus();
+      /* this.$element.focus(); */
     },
 
     mouseenter: function (e) {
