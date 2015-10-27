@@ -1,14 +1,13 @@
-# Trade Journal (trjournal)
-
-Webapp brainchild of Dude1 & Dude2
+# Study Tracker (study-tracker)
 
 ## Build instructions
 
 To clone and build, do:
 
 ```
-git clone  https://github.com/davebeyer/trjournal
-cd trjournal
+git clone  https://github.com/davebeyer/study-tracker
+cd study-tracker
+tsd install
 npm install
 ```
 
@@ -33,7 +32,7 @@ To build, start an http-server on localhost, and kickoff watchify/browserify to 
 Then you should be able to visit:
 
 ```
-http://localhost:8097
+http://localhost:8095
 ```
 
 ## Technologies Employed
