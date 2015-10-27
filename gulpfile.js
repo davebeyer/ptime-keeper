@@ -20,6 +20,7 @@ var BrowserifyOptions = {
 }
 
 gulp.task('build-prod', function() {
+    BrowserifyOptions.debug = false;
     var b = browserify(BrowserifyOptions);
 
     // Add Typescript transpile plugin
@@ -94,7 +95,7 @@ function doBundle(bundler, options) {
 	.pipe(gulpif(options.minimize, streamify(uglify())))
 
         // Output the file
-	.pipe(gulp.dest('./client/build'));
+	.pipe(gulp.dest('./client/public/build'));
 }
 
 gulp.task('default', ['watch-dev']);

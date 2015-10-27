@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Pomodoro-based Study Tracker",
   "scripts": {
+    "clean": "find . -name '*~' | xargs -L 1 rm -v ",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dave Beyer",

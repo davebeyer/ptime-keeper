@@ -4,7 +4,7 @@ pkill -f 'gulp'
 npm install
 (gulp watch-dev) &
 
-(nohup http-server client --cors -p 8095 > log/server.log)  &
+(nohup http-server client/public --cors -p 8095 > server/log/server.log)  &
 echo "Server started on http://localhost:8095"
 
 
