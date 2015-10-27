@@ -89,7 +89,7 @@ function doBundle(bundler, options) {
 	})
 
         // vinyl-source-stream makes the bundle compatible with gulp
-        .pipe(source('bundle.js'))
+        .pipe(source('study-tracker.js'))
 
         // minimize the bundle if options.minimize
 	.pipe(gulpif(options.minimize, streamify(uglify())))
