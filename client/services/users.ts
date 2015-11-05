@@ -1,5 +1,6 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
+// @Inject needed for Services to support dependency injection
 import {Inject} from 'angular2/core';
 
 import {FirebaseService} from './firebase';
