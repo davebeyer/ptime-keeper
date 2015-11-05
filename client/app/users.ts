@@ -94,12 +94,15 @@ export class UserService {
             this.user.firstName       = this.user._authData.google.cachedUserProfile.given_name;
             this.user.lastName        = this.user._authData.google.cachedUserProfile.family_name;
             this.user.profileImageURL = this.user._authData.google.profileImageURL;
+
+	    this.user.fullName        = this.user.firstName + ' ' + this.user.lastName;
             break;
         default:
             this.user.isLoggedIn      = false;
             this.user.firstName       = null; 
             this.user.lastName        = null; 
             this.user.profileImageURL = null;
+	    this.user.fullName        = null;
             break;
         }
     }

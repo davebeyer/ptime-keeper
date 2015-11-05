@@ -48,20 +48,20 @@ var Firebase   = require('firebase/lib/firebase-web.js');
 ])
 
 class StudyTracker {
-    userService : UserService;
-    fbRef       : Firebase;
-    router      : Router;
+    userServ : UserService;
+    fbRef    : Firebase;
+    router   : Router;
 
-    constructor(router : Router, userService : UserService) {
-        this.router      = router;
-        this.userService = userService;
+    constructor(router : Router, userServ : UserService) {
+        this.router   = router;
+        this.userServ = userServ;
 
         console.log("main.ts: in StudyTracker constructor")
     }
 
     onInit() {
         this.fbRef  = new Firebase('https://study-tracker.firebaseio.com');
-        this.userService.setDB(this.fbRef);
+        this.userServ.setDB(this.fbRef);
 
         // NOTE: here we use the router *name* not the actual route URL!
         this.router.navigate(['./SignIn']);    // SignIn

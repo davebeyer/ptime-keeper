@@ -3,7 +3,7 @@
 import {Component, View, NgClass} from 'angular2/angular2';
 import {Router, RouterLink}       from 'angular2/router';
 
-declare var jQuery:any;
+import {UserService} from './users';
 
 @Component({
     selector: 'footer'
@@ -15,7 +15,7 @@ declare var jQuery:any;
     template: `
         <nav class="navbar navbar-default navbar-fixed-bottom">
           <div class="container">
-            <div class="navbar-header">
+            <div class="navbar-header"  [hidden]="!userServ.user.isLoggedIn">
               <ul class="nav nav-tabs" style="width:100%">
                 <li role="presentation" [class.active]="currentTab=='plan'">   
                   <a href="#" [router-link]="['/Plan']">   Plan   </a>    
@@ -34,11 +34,13 @@ declare var jQuery:any;
 })
 
 export class Footer {
+    userServ        : UserService;
     router          : Router;
     currentTab      : string;
 
-    constructor(router : Router) {
+    constructor(userServ : UserService, router : Router) {
         console.log("footer.ts: in constructor")
+	this.userServ   = userServ;
         this.router     = router;
         this.currentTab = '';
     }

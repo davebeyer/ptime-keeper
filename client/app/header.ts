@@ -1,32 +1,32 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
 import {Component, View}   from 'angular2/angular2';
-import {RouterLink}        from 'angular2/router';
+import {Router}            from 'angular2/router';
 
-declare var jQuery:any;
+import {UserService} from './users';
 
 @Component({
     selector: 'header'
 })
 
 @View({
-    directives: [RouterLink],
-
     template: `
 	<nav class="navbar navbar-default navbar-fixed-top">
 	  <div class="container">
 	    <div class="row" style="padding-top: 8px">
                 <h4 class="col-xs-6">Study Tracker</h4>
 
-                <div class="col-xs-4 col-xs-offest-2 dropdown pull-right">
+                <div class="col-xs-4 col-xs-offest-2 dropdown pull-right" [hidden]="!userServ.user.isLoggedIn">
                   <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                     Dave <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
-                    <li><a href="#">Dave Beyer</a></li>
+                    <li class="dropdown-header">
+                      <img src="{{userServ.user.profileImageURL}}" style="height:25px"/> 
+                      &nbsp; {{userServ.user.fullName}}
+                    </li>
                     <li role="seperator" class="divider"></li>
-                    <li><a href="#">Account info</a></li>
-                    <li><a href="#">Sign out</a></li>
+                    <li><a href="#" (click)="logout()">Sign out</a></li>
                   </ul>
                 </div>
             </div>
@@ -36,8 +36,18 @@ declare var jQuery:any;
 })
 
 export class Header {
-    constructor() {
+    userServ : UserService;
+    router   : Router;
+
+    constructor(userServ : UserService, router : Router) {
         console.log("header.ts: in constructor")
+	this.userServ = userServ;
+	this.router   = router;
+    }
+
+    logout() {
+	this.userServ.logout();
+        this.router.navigate(['./SignIn']);    // SignIn
     }
 }
 

@@ -1,32 +1,36 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
 import {Component, View}          from 'angular2/angular2';
-import {RouterLink}               from 'angular2/router';
 
 import {UserService} from './users';
-
-declare var jQuery:any;
 
 @Component({
     selector: 'signin'
 })
 
 @View({
-    directives: [RouterLink],
-
     template: `
         <div class="signin-form">
-          <div [hidden]="userServ.user.isLoggedIn">
-            <h3 class="form-signin-heading">Please sign in using:</h3>
-            <button class="btn btn-lg btn-primary btn-block" (click)="login('google')">  Google  </button>
-            <button class="btn btn-lg btn-primary btn-block" (click)="login('facebook')">Facebook</button>
+          <div [hidden]="userServ.user.isLoggedIn" class="text-center">
+            <h3 class="form-signin-heading">Welcome to Study Tracker!</h3>
+
+            <h4 style="margin-top:30px"> 
+              Please sign in using
+                <a class="btn-sm btn-social btn-google" (click)="login('google')" role="button">
+                <span class="fa fa-google"></span> Google
+              </a>
+            </h4>
+            <!--
+	      <a class="btn-sm btn-social btn-facebook"  (click)="login('facebook')">
+	        <span class="fa fa-facebook"></span> Facebook
+	      </a>
+	    -->     
           </div>
 
-          <div [hidden]="!userServ.user.isLoggedIn">
-            Hello {{userServ.user.firstName}} <img src="{{userServ.user.profileImageURL}}"/> 
-            <a class="btn" (click)="logout()">
-              Sign out
-            </a>
+          <div [hidden]="!userServ.user.isLoggedIn" class="text-center">
+            <h2>Welcome {{userServ.user.firstName}}!</h2>
+	    <img src="{{userServ.user.profileImageURL}}"/> 
+	    <h5>Click on a tab below to proceed!</h5>
           </div>
         </div>
       `
