@@ -1,7 +1,7 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-import {Component, View}   from 'angular2/angular2';
-import {Router}            from 'angular2/router';
+import {Component, View}          from 'angular2/angular2';
+import {Router, RouterLink}       from 'angular2/router';
 
 import {UserService}       from '../services/users';
 
@@ -10,6 +10,8 @@ import {UserService}       from '../services/users';
 })
 
 @View({
+    directives: [RouterLink],
+
     template: `
 	<nav class="navbar navbar-default navbar-fixed-top">
 	  <div class="container">
@@ -27,6 +29,7 @@ import {UserService}       from '../services/users';
                       {{userServ.user.fullName}}
                     </li>
                     <li role="seperator" class="divider"></li>
+                    <li><a href="#" [router-link]="['/Preferences']"><i class="fa fa-wrench"></i> Preferences</a></li>
                     <li><a href="#" (click)="logout()"><i class="fa fa-sign-out"></i> Sign out</a></li>
                   </ul>
                 </div>

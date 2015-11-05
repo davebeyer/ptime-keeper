@@ -8,14 +8,15 @@ import {ROUTER_PROVIDERS, RouteConfig, Router}                   from 'angular2/
 import {Route, Location, LocationStrategy, HashLocationStrategy} from 'angular2/router';
 import {RouterOutlet}                                            from 'angular2/router';
 
-import {Header}    from './header';
-import {Footer}    from './footer';
+import {Header}          from './header';
+import {Footer}          from './footer';
 
-import {SignIn}    from './signin';
+import {SignIn}          from './signin';
+import {Preferences}     from './preferences';
 
-import {Plan}      from './plan';
-import {Work}      from './work';
-import {History}   from './history';
+import {Plan}            from './plan';
+import {Work}            from './work';
+import {History}         from './history';
 
 import {UserService}     from '../services/users';
 import {FirebaseService} from '../services/firebase';
@@ -41,10 +42,11 @@ declare var jQuery:any;
 })
 
 @RouteConfig([
-    { path: '/plan',    as: 'Plan',    component: Plan },
-    { path: '/work',    as: 'Work',    component: Work },
-    { path: '/history', as: 'History', component: History },
-    { path: '/signin',  as: 'SignIn',  component: SignIn }
+    { path: '/plan',    as: 'Plan',    	   component: Plan },
+    { path: '/work',    as: 'Work',    	   component: Work },
+    { path: '/history', as: 'History', 	   component: History },
+    { path: '/signin',  as: 'SignIn',  	   component: SignIn },
+    { path: '/prefs',   as: 'Preferences', component: Preferences }
 ])
 
 class StudyTracker {
