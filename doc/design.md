@@ -2,14 +2,15 @@
 
 ## Overview
 
-Based on Pompodoro Time Management
-* 25 mins work, 5 mins break, dflt
-* 15 min (long break) every 4 pompodoros, dflt
+Based on Pomodoro Time Management
+
+* 25 mins work, 5 mins break, default
+* 15 min (long break) every 4 pomodoros, dflt
 
 With time tracking to review estimates vs actuals
-* Though break-timing and estimates based on Pompodoros, tracking done to
-* minute accuracy, with default history displays in terms of pompodoros
 
+* Though break-timing and estimates based on Pomodoros, tracking done to
+  minute accuracy, with default history displays in terms of pomodoros.
 
 Saves data in the cloud, but works offline too
 
@@ -22,20 +23,20 @@ Configuration:
 
 Daily homework session:
   New Session
-  Plan activities and estimates in terms of Pompodoros
+  Plan activities and estimates in terms of Pomodoros
   Each activity gets:
     Activity category
-    Estimated number of Pompodoros
+    Estimated number of Pomodoros
     Optional activity details
   E.g.,
-    English: Write outline, 2 Pomps
-    French: <no details>, 1 Pomp
-    Math: Study for test, 2 Pomps
+    English: Write outline, 2 Poms
+    French: <no details>, 1 Pom
+    Math: Study for test, 2 Poms
 
 Work:
   Activities are listed, select which one to work on
   Start Activity, which starts session
-  At end of Pompodoro, alarm sounds, start break, alarm ends break
+  At end of Pomodoro, alarm sounds, start break, alarm ends break
   Can "Pause" timer (pauses also tracked)
   End Session when done
 
@@ -44,8 +45,8 @@ Session Display Modes:
     Timer showing countdown time to next break (or negative time if past break)
     Current Activity shown with:
       Activity category (colored) and description
-      Estimated Pompodoros for this session
-      Actual Pompodoros so far
+      Estimated Pomodoros for this session
+      Actual Pomodoros so far
     Buttons for:
       Take Break (button gets big if timer is negative)
       Finish Activity
@@ -57,7 +58,7 @@ Session Display Modes:
       Finish Activity
   Finished (like taking a break, but marks activity as finished)
     Timer showing countdown time to next work sprint
-    Nice job, you were X pompodoros under/over today's budget!
+    Nice job, you were X pomodoros under/over today's budget!
     Current activity expands (as if clicked) to pick next activity (if pick
     a "finished" activity, then reopen it as not yet finished)
 
@@ -98,8 +99,8 @@ Database:
     = session_id
     = category_id
     = details
-    = estimate_pomps (supports fractions, to 1/4ths)
-    = actual_pomps (support fractions)
+    = estimate_poms (supports fractions, to 1/4ths)
+    = actual_poms (support fractions)
     = created_dt
     = started_dt
     = finished_dt

@@ -10,27 +10,44 @@ import {UserService} from '../services/users';
 
 @View({
     template: `
-        <div class="signin-form">
-          <div [hidden]="userServ.user.isLoggedIn" class="text-center">
-            <h3 class="form-signin-heading">Welcome to Study Tracker!</h3>
+        <div class="text-center" style="width:100%">
 
-            <h4 style="margin-top:30px"> 
-              Please sign in using
-                <a class="btn-sm btn-social btn-google" (click)="login('google')" role="button">
-                <span class="fa fa-google"></span> Google
-              </a>
-            </h4>
-            <!--
-	      <a class="btn-sm btn-social btn-facebook"  (click)="login('facebook')">
-	        <span class="fa fa-facebook"></span> Facebook
-	      </a>
-	    -->     
+          <div [hidden]="userServ.user.isLoggedIn">
+            <table style="margin:40px auto">
+              <tr>
+                <td width="40%"> <img src="/img/tomato-md.png"/> </td>
+                <td> <h2>  Welcome to <br/> Study Tracker!</h2> </td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <h4 style="margin-top:40px">  
+                    Please sign in using
+                      <a class="btn-sm btn-social btn-google" (click)="login('google')" role="button">
+                      <span class="fa fa-google"></span> Google
+                    </a>
+                  </h4>
+                  <!--
+                    <a class="btn-sm btn-social btn-facebook"  (click)="login('facebook')">
+                      <span class="fa fa-facebook"></span> Facebook
+                    </a>
+                  -->     
+                </td>
+              </tr>
+            </table>
           </div>
 
           <div [hidden]="!userServ.user.isLoggedIn" class="text-center">
-            <h2>Welcome {{userServ.user.firstName}}!</h2>
-	    <img src="{{userServ.user.profileImageURL}}"/> 
-	    <h5>Click on a tab below to proceed!</h5>
+            <table style="margin:35px auto">
+              <tr>
+                <td width="40%"> <img src="/img/tomato-md.png"/> </td>
+                <td> <h2> Welcome<br/>{{userServ.user.firstName}}! </h2></td>
+              </tr>
+              <tr>
+                <td colspan="2">
+                  <h4 style="margin-top:40px">Click on a tab below to proceed!</h4>
+                </td>
+              </tr>
+            </table>
           </div>
         </div>
       `

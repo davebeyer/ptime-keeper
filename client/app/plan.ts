@@ -5,8 +5,6 @@ import {CanReuse, ComponentInstruction} from 'angular2/router';
 
 import {Typeahead} from '../components/typeahead';
 
-declare var jQuery:any;
-
 const NEW_CLASS_ID = -1;
 
 @Component({
@@ -17,6 +15,7 @@ const NEW_CLASS_ID = -1;
     directives: [Typeahead],
 
     template: `
+
       <typeahead placeholder="Enter a class" [options]="classOptions" [newoption]="newOption" (select)="selectClass($event, item)">
       </typeahead>
 
@@ -55,12 +54,10 @@ export class Plan implements CanReuse {
         case NEW_CLASS_ID:
             this.newClass = item.name;
             this.addNewClass  = true;
-            jQuery("#category-add").show();
             break;
         case null:
             this.newClass = '';
             this.addNewClass  = true;
-            jQuery("#category-add").show();
             break;
         default:
             this.addNewClass  = false;
