@@ -16,7 +16,7 @@ import {UserService} from '../services/users';
             <table style="margin:40px auto">
               <tr>
                 <td width="40%"> <img src="/img/tomato-md.png"/> </td>
-                <td> <h2>  Welcome to <br/> Pomodoro Time Keeper!</h2> </td>
+                <td> <h3>  Welcome to <br/> Pomodoro Time Keeper!</h3> </td>
               </tr>
               <tr>
                 <td colspan="2">

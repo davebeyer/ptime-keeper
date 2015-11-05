@@ -1,46 +1,49 @@
 # Study Tracker App
 
-## Overview
+## Features
 
 Based on Pomodoro Time Management
 
 * 25 mins work, 5 mins break, default
 * 15 min (long break) every 4 pomodoros, dflt
 
-With time tracking to review estimates vs actuals
+Includes time tracking to review past estimates vs actuals
 
-* Though break-timing and estimates based on Pomodoros, tracking done to
-  minute accuracy, with default history displays in terms of pomodoros.
+* Although break-timing and estimates are based on Pomodoros, actual
+  time tracking is kept to minute accuracy, with default history
+  displays in terms of pomodoros.
 
-Saves data in the cloud, but works offline too
+Saves data in the cloud, but also works offline
 
-Configuration:
-  Setup activity categories (English, Math, Science...)
-  Assign color coding by category
+## Configuration
 
-  If rename an activity category, asks whether this is "new" or just a renaming
+* Setup activity categories (English, Math, Science...)
+* Assign color coding by activity category
+* When renaming an activity category, asks whether this is "new" or just a renaming
   of an existing activity (in which case, tracking history will continue)
 
-Daily homework session:
-  New Session
-  Plan activities and estimates in terms of Pomodoros
-  Each activity gets:
-    Activity category
-    Estimated number of Pomodoros
-    Optional activity details
-  E.g.,
-    English: Write outline, 2 Poms
-    French: <no details>, 1 Pom
-    Math: Study for test, 2 Poms
+## Daily session:
 
-Work:
-  Activities are listed, select which one to work on
-  Start Activity, which starts session
-  At end of Pomodoro, alarm sounds, start break, alarm ends break
-  Can "Pause" timer (pauses also tracked)
-  End Session when done
+* Plan activities and estimates in terms of Pomodoros
+* Each activity gets:
+  * Activity category
+  * Estimated number of Pomodoros
+  *  Optional activity details
+  * E.g.,
+      * English: Write outline, 2 Poms
+      * French: <no details>, 1 Pom
+      * Math: Study for test, 2 Poms
 
-Session Display Modes:
+## Work:
+
+* Activities are listed, select which one to work on
+* Click "Start/Resume" Activity, which starts session
+* At end of Pomodoro, alarm sounds, start break, alarm ends break
+* Can "Pause" timer (pauses also tracked)
+* End Session when done
+
+## Session Display Modes
+
   Working:
     Timer showing countdown time to next break (or negative time if past break)
     Current Activity shown with:

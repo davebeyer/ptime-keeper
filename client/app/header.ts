@@ -16,9 +16,9 @@ import {UserService}       from '../services/users';
 	<nav class="navbar navbar-default navbar-fixed-top">
 	  <div class="container">
 	    <div class="row" style="padding-top: 8px">
-                <h4 class="col-xs-7">Pomodoro Time Keeper</h4>
+                <h4 class="col-xs-8">Pomodoro Time Keeper</h4>
 
-                <div class="col-xs-4 col-xs-offest-2 dropdown pull-right" [hidden]="!userServ.user.isLoggedIn">
+                <div class="col-xs-4 dropdown pull-right" [hidden]="!userServ.user.isLoggedIn">
                   <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                     <img src="{{userServ.user.profileImageURL}}" style="height:25px"/> 
                     &nbsp; {{userServ.user.firstName}}
