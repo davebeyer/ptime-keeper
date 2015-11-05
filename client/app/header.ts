@@ -18,12 +18,13 @@ import {UserService} from './users';
 
                 <div class="col-xs-4 col-xs-offest-2 dropdown pull-right" [hidden]="!userServ.user.isLoggedIn">
                   <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    Dave <span class="caret"></span>
+                    <img src="{{userServ.user.profileImageURL}}" style="height:25px"/> 
+                    &nbsp; {{userServ.user.firstName}}
+                    <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
                     <li class="dropdown-header">
-                      <img src="{{userServ.user.profileImageURL}}" style="height:25px"/> 
-                      &nbsp; {{userServ.user.fullName}}
+                      {{userServ.user.fullName}}
                     </li>
                     <li role="seperator" class="divider"></li>
                     <li><a href="#" (click)="logout()">Sign out</a></li>
