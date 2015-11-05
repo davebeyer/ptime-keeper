@@ -16,7 +16,7 @@ import {UserService} from '../services/users';
             <table style="margin:40px auto">
               <tr>
                 <td width="40%"> <img src="/img/tomato-md.png"/> </td>
-                <td> <h2>  Welcome to <br/> Study Tracker!</h2> </td>
+                <td> <h2>  Welcome to <br/> Pomodoro Time Keeper!</h2> </td>
               </tr>
               <tr>
                 <td colspan="2">
@@ -44,7 +44,7 @@ import {UserService} from '../services/users';
               </tr>
               <tr>
                 <td colspan="2">
-                  <h4 style="margin-top:40px">Click on a tab below to proceed!</h4>
+                  <h4 style="margin-top:40px">Click on a tab below to get started!</h4>
                 </td>
               </tr>
             </table>
