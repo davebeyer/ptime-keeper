@@ -19,7 +19,7 @@ declare var jQuery:any;
 @View({
     template: `
         <input type="text" data-provide="typeahead"  placeholder="{{placeholder}}">
-    `
+	`
 })
 
 export class Typeahead {

@@ -3,3 +3,13 @@ body {
   padding-top:    70px; 
   padding-bottom: 70px; 
 }
+
+/* For Typeahead component */
+.dropdown-color-box { 
+  width:  7px; 
+  height: 10px;
+  display: inline-block;
+  margin-right: 7px;
+}
+
+

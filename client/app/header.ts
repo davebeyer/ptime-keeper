@@ -27,7 +27,7 @@ import {UserService}       from '../services/users';
                       {{userServ.user.fullName}}
                     </li>
                     <li role="seperator" class="divider"></li>
-                    <li><a href="#" (click)="logout()">Sign out</a></li>
+                    <li><a href="#" (click)="logout()"><i class="fa fa-sign-out"></i> Sign out</a></li>
                   </ul>
                 </div>
             </div>
