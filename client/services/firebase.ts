@@ -10,6 +10,6 @@ export class FirebaseService {
 
     constructor() {
 	console.log("firebase.ts: in FirebaseService constructor")
-        this.fbRef  = new Firebase('https://study-tracker.firebaseio.com');
+        this.fbRef  = new Firebase('https://ptime-keeper.firebaseio.com');
     }
 }

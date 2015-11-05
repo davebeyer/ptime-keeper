@@ -49,7 +49,7 @@ declare var jQuery:any;
     { path: '/prefs',   as: 'Preferences', component: Preferences }
 ])
 
-class StudyTracker {
+class PomodoroTimeKeeper {
     userServ : UserService;
     router   : Router;
 
@@ -57,7 +57,7 @@ class StudyTracker {
         this.router   = router;
         this.userServ = userServ;
 
-        console.log("main.ts: in StudyTracker constructor")
+        console.log("main.ts: in PomodoroTimeKeeper constructor")
     }
 
     onInit() {
@@ -73,7 +73,7 @@ class StudyTracker {
 
 // similar to jQuery(document).ready(), but doesn't work in old IE browsers
 document.addEventListener('DOMContentLoaded', function(){ 
-    bootstrap(StudyTracker, 
+    bootstrap(PomodoroTimeKeeper,
 
               // List of universally injectable providers
               [

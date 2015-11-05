@@ -1,4 +1,4 @@
-# Study Tracker App
+# Pomodoro Time Keeper
 
 ## Features
 
