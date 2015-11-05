@@ -6,28 +6,28 @@ import {Component, View, bootstrap, provide}                     from 'angular2/
 
 import {ROUTER_PROVIDERS, RouteConfig, Router}                   from 'angular2/router';
 import {Route, Location, LocationStrategy, HashLocationStrategy} from 'angular2/router';
-import {RouterLink, RouterOutlet}                                from 'angular2/router';
+import {RouterOutlet}                                            from 'angular2/router';
 
 import {Header}    from './header';
 import {Footer}    from './footer';
 
-import {UserService} from '../services/users';
 import {SignIn}    from './signin';
 
 import {Plan}      from './plan';
 import {Work}      from './work';
 import {History}   from './history';
 
-declare var jQuery:any;
+import {UserService}     from '../services/users';
+import {FirebaseService} from '../services/firebase';
 
-var Firebase   = require('firebase/lib/firebase-web.js');
+declare var jQuery:any;
 
 @Component({
     selector: 'app'
 })
 
 @View({
-    directives: [RouterLink, RouterOutlet, Header, Footer],
+    directives: [RouterOutlet, Header, Footer],
 
     template: `
         <header></header>
@@ -49,7 +49,6 @@ var Firebase   = require('firebase/lib/firebase-web.js');
 
 class StudyTracker {
     userServ : UserService;
-    fbRef    : Firebase;
     router   : Router;
 
     constructor(router : Router, userServ : UserService) {
@@ -60,8 +59,8 @@ class StudyTracker {
     }
 
     onInit() {
-        this.fbRef  = new Firebase('https://study-tracker.firebaseio.com');
-        this.userServ.setDB(this.fbRef);
+	// Always start on the signin page, which will give a welcome 
+	// message if already signed in
 
         // NOTE: here we use the router *name* not the actual route URL!
         this.router.navigate(['./SignIn']);    // SignIn
@@ -77,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function(){
               // List of universally injectable providers
               [
                   UserService,
+		  FirebaseService,
                   ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
               ]

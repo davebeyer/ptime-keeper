@@ -3,7 +3,7 @@
 import {Component, View}                from 'angular2/angular2';
 import {CanReuse, ComponentInstruction} from 'angular2/router';
 
-import {Typeahead} from './typeahead';
+import {Typeahead} from '../components/typeahead';
 
 declare var jQuery:any;
 

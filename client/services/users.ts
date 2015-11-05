@@ -1,32 +1,31 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-import {Component, View, EventEmitter} from 'angular2/angular2';
+import {Inject} from 'angular2/core';
+
+import {FirebaseService} from './firebase';
 
 export class UserService {
     user  : any;
-    fbRef : Firebase;  // ToDo: use dependency injector to get Database service
+    fBase : FirebaseService;
 
-    constructor() {
-        console.log("users.ts: in UserService constructor")
+    // NOTE: Since this class doesn't have any annotations 
+    //       (and thus no angular2 metadata attached by default), we need
+    //       to use @Inject here to force metadata to be added, to support
+    //       dependency injection!
 
-        // Only initialize locally instatiated data here 
-        // (angular2-dependent data has not yet been fully initialized)
+    constructor(@Inject(FirebaseService) fBase : FirebaseService) {
+        console.log("users.ts: UserService constructor")
 
-        this.fbRef = null;
+        var _this  = this;
+
+        this.fBase = fBase;
         this.user  = {};
 
         // Initialize
         this.updateUserData(null);
 
-        console.log("users.ts: finished UserService constructor")
-    }
-
-    setDB(fbRef) {
-        var _this  = this;
-        this.fbRef = fbRef;
-
         // Register the authentication callback
-        this.fbRef.onAuth(function(authData) {
+        this.fBase.fbRef.onAuth(function(authData) {
             _this.updateUserData(authData);
         });
     }
@@ -39,11 +38,11 @@ export class UserService {
             return;
         }
 
-        this.fbRef.authWithOAuthPopup(provider, function(error, authData) {
+        this.fBase.fbRef.authWithOAuthPopup(provider, function(error, authData) {
             if (error) {
                 if (error.code === "TRANSPORT_UNAVAILABLE") {
                     // Could be due to not allowing pop-ups in this env
-                    _this.fbRef.authWithOAuthRedirect("google", function(error) {
+                    _this.fBase.fbRef.authWithOAuthRedirect("google", function(error) {
                         if (error) {
                             console.log("Login Failed!", error);
                         } 
@@ -61,7 +60,7 @@ export class UserService {
     }
 
     logout() {
-        this.fbRef.unauth();
+        this.fBase.fbRef.unauth();
         this.updateUserData(null);
     }
 
