@@ -44,28 +44,28 @@ Saves data in the cloud, but also works offline
 
 ## Session Display Modes
 
-  Working:
-    Timer showing countdown time to next break (or negative time if past break)
-    Current Activity shown with:
-      Activity category (colored) and description
-      Estimated Pomodoros for this session
-      Actual Pomodoros so far
-    Buttons for:
-      Take Break (button gets big if timer is negative)
-      Finish Activity
-  Break (when Take Break pressed):
-    Timer showing countdown time to next work sprint (dflt 5 mins or 15 mins if long break)
-    Current activity shown as above (click on it to switch)
-    Buttons for:
-      Resume Work (gets big if timer is negative)
-      Finish Activity
-  Finished (like taking a break, but marks activity as finished)
-    Timer showing countdown time to next work sprint
-    Nice job, you were X pomodoros under/over today's budget!
-    Current activity expands (as if clicked) to pick next activity (if pick
-    a "finished" activity, then reopen it as not yet finished)
+* Working:
+  *  Timer showing countdown time to next break (or negative time if past break)
+  *  Current Activity shown with:
+      * Activity category (colored) and description
+      * Estimated Pomodoros for this session
+      * Actual Pomodoros so far
+  * Buttons for:
+      * Take Break (button gets big if timer is negative)
+      * Finish Activity
+  * Break (when Take Break pressed):
+      * Timer showing countdown time to next work sprint (dflt 5 mins or 15 mins if long break)
+      * Current activity shown as above (click on it to switch)
+      * Buttons for:
+          * Resume Work (gets big if timer is negative)
+          * Finish Activity
+  * Finished (like taking a break, but marks activity as finished)
+      * Timer showing countdown time to next work sprint
+      * Nice job, you were X pomodoros under/over today's budget!
+    * Current activity expands (as if clicked) to pick next activity (if pick
+      a "finished" activity, then reopen it as not yet finished)
 
-  For all, gears icon to edit today's session or categories (or history?)
+  * For all, gears icon to edit today's session or categories (or history?)
 
 History:
   Estimates vs Actuals, Work time vs Pauses
