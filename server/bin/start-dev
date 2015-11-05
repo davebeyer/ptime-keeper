@@ -1,11 +1,34 @@
-pkill -f 'http-server client --cors -p 8095'
-pkill -f 'gulp'
+# Set directory vars
+BIN_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+SERVER_DIR=$BIN_DIR/..
+LOG_DIR=$SERVER_DIR/log
 
-npm install
+# Kill current processes
+#
+# Note that for *nix systems, process IDs aren't reused for a while, so the
+# following should be pretty safe to do:
+#   http://superuser.com/questions/135007/how-are-pids-generated
+# pkill -f 'http-server client --cors -p 8095'
+# pkill -f 'gulp'
+
+# Kill quietly
+bash ${BIN_DIR}/killer.sh  2>/dev/null
+
+# Start
+
+cd ${SERVER_DIR}/..
+
 (gulp watch-dev) &
+GULP_PID=$!
 
-(nohup http-server client/public --cors -p 8095 > server/log/server.log)  &
+(nohup http-server client/public --cors -p 8095 > ${LOG_DIR}/server.log)  &
+SERVER_PID=$!
+
 echo "Server started on http://localhost:8095"
+
+echo "kill -9 ${GULP_PID}   # gulp"     >  ${BIN_DIR}/killer.sh
+echo "kill -9 ${SERVER_PID}   # server" >> ${BIN_DIR}/killer.sh
+
 
 
 

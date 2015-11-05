@@ -11,7 +11,7 @@ import {RouterLink, RouterOutlet}                                from 'angular2/
 import {Header}    from './header';
 import {Footer}    from './footer';
 
-import {UserBlock} from './users';
+import {UserService} from './users';
 import {SignIn}    from './signin';
 
 import {Plan}      from './plan';
@@ -27,12 +27,10 @@ var Firebase   = require('firebase/lib/firebase-web.js');
 })
 
 @View({
-    directives: [RouterLink, RouterOutlet, UserBlock, Header, Footer],
+    directives: [RouterLink, RouterOutlet, Header, Footer],
 
     template: `
         <header></header>
-
-        <user-block (initevent)="registerUserBlock($event)"> </user-block>
 
         <div class="container">
           <router-outlet></router-outlet>
@@ -50,24 +48,27 @@ var Firebase   = require('firebase/lib/firebase-web.js');
 ])
 
 class StudyTracker {
-    userBlock   : UserBlock;
+    userService : UserService;
     fbRef       : Firebase;
     router      : Router;
 
-    constructor(router : Router) {
-        this.router = router;
-        this.fbRef  = new Firebase('https://study-tracker.firebaseio.com');
+    constructor(router : Router, userService : UserService) {
+        this.router      = router;
+        this.userService = userService;
+
         console.log("main.ts: in StudyTracker constructor")
     }
 
-    registerUserBlock(userComp) {
-        this.userBlock = userComp;
-        userComp.registerParent(this, this.fbRef);
+    onInit() {
+        this.fbRef  = new Firebase('https://study-tracker.firebaseio.com');
+        this.userService.setDB(this.fbRef);
 
-	// NOTE: here we use the router *name* not the actual route URL!
-	this.router.navigate(['./Plan']);    // SignIn
+        // NOTE: here we use the router *name* not the actual route URL!
+        this.router.navigate(['./SignIn']);    // SignIn
     }
+
 }
+
 
 // similar to jQuery(document).ready(), but doesn't work in old IE browsers
 document.addEventListener('DOMContentLoaded', function(){ 
@@ -75,7 +76,8 @@ document.addEventListener('DOMContentLoaded', function(){
 
               // List of universally injectable providers
               [
-		  ROUTER_PROVIDERS,
+                  UserService,
+                  ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
               ]
 

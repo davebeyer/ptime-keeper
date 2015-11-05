@@ -2,89 +2,28 @@
 
 import {Component, View, EventEmitter} from 'angular2/angular2';
 
-export var User = {};
-
-@Component({
-    selector: 'user-block',
-    events:   ['initevent']     // NOTE that event names must be all lower case
-})
-
-@View({
-    template: `
-      <div class="container">
-        <div class="signin-form">
-          <div [hidden]="user.isLoggedIn">
-            <h3 class="form-signin-heading">Please sign in using:</h3>
-            <button class="btn btn-lg btn-primary btn-block" (click)="login('google')">  Google  </button>
-            <button class="btn btn-lg btn-primary btn-block" (click)="login('facebook')">Facebook</button>
-          </div>
-
-          <div [hidden]="!user.isLoggedIn">
-            Hello {{user.firstName}} <img src="{{user.profileImageURL}}"/> 
-            <a class="btn" (click)="logout()">
-              Sign out
-            </a>
-          </div>
-        </div>
-      </div>
-      `
-})
-
-export class UserBlock {
-    user : any;
-    
-    //
-    // Currently a 3-step initialization to hook-up child to parent components
-    //
-    //   constructor() - [name fixed by JS/Typescript] local (non-angular2-dependent) data only 
-    //
-    //   onInit()      - [name fixed by angular2] angular2 lifecycle init-done event callback 
-    //                   Generate a initevent [DB convention name] to alert parent of new child component.
-    //                   (Parent component will then typically have a register<ChildComponentType>() event handler)
-    //
-    //   registerParent() - [DB convention name] called by parent component
-    //
-    // TODO: Easier method to get pointers to parent & children components 
-    //       (and/or their needed data)
-    //
-    //
-
-    parent        : any;  
-    fbRef         : Firebase;      // ToDo: use dependency injector to get Database service
-    initevent     : EventEmitter;
+export class UserService {
+    user  : any;
+    fbRef : Firebase;  // ToDo: use dependency injector to get Database service
 
     constructor() {
-        console.log("users.ts: in UserBlock constructor")
+        console.log("users.ts: in UserService constructor")
 
         // Only initialize locally instatiated data here 
         // (angular2-dependent data has not yet been fully initialized)
 
-        this.initevent = new EventEmitter();
-
-        this.parent    = null;  // will be set by the parent
-        this.fbRef     = null;
-
-        this.user      = User;
+        this.fbRef = null;
+        this.user  = {};
 
         // Initialize
         this.updateUserData(null);
 
-        console.log("users.ts: finished UserBlock constructor")
+        console.log("users.ts: finished UserService constructor")
     }
 
-    onInit() {
-        // onInit() is a angular2 lifecycle method called 
-        // automatically after angular2 has completed initialization
-
-        console.log("onInit: for Users Component", this);
-        this.initevent.next(this); // send initevent to parent component
-    }
-
-    registerParent(parent, fbRef) {
-	var _this = this;
-
-	this.fbRef  = fbRef;
-	this.parent = parent;
+    setDB(fbRef) {
+        var _this  = this;
+        this.fbRef = fbRef;
 
         // Register the authentication callback
         this.fbRef.onAuth(function(authData) {
@@ -93,7 +32,7 @@ export class UserBlock {
     }
 
     login(provider) {
-	var _this = this;
+        var _this = this;
 
         if (provider === 'facebook') {
             alert("Sorry, Facebook signin not yet supported");
@@ -124,6 +63,18 @@ export class UserBlock {
     logout() {
         this.fbRef.unauth();
         this.updateUserData(null);
+    }
+
+    isLoggedIn() {
+        return this.user.isLoggedIn;
+    }
+
+    firstName() {
+	return this.user.firstName;
+    }
+
+    profileImageURL() {
+	return this.user.profileImageURL;
     }
 
     updateUserData(authData) {
