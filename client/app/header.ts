@@ -3,7 +3,7 @@
 import {Component, View}   from 'angular2/angular2';
 import {Router}            from 'angular2/router';
 
-import {UserService} from './users';
+import {UserService}       from '../services/users';
 
 @Component({
     selector: 'header'

@@ -11,7 +11,7 @@ import {RouterLink, RouterOutlet}                                from 'angular2/
 import {Header}    from './header';
 import {Footer}    from './footer';
 
-import {UserService} from './users';
+import {UserService} from '../services/users';
 import {SignIn}    from './signin';
 
 import {Plan}      from './plan';
