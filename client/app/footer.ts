@@ -18,13 +18,13 @@ import {UserService}       from '../services/users';
             <div class="navbar-header"  [hidden]="!userServ.user.isLoggedIn">
               <ul class="nav nav-tabs" style="width:100%">
                 <li role="presentation" [class.active]="currentTab=='plan'">   
-                  <a href="#" [router-link]="['/Plan']">   Plan   </a>    
+                  <a href="#" [router-link]="['/Plan']"><i class="fa fa-tasks"></i> Plan </a>    
                 </li>
                 <li role="presentation" [class.active]="currentTab=='work'">   
-                  <a href="#" [router-link]="['/Work']">   Work   </a>    
+                  <a href="#" [router-link]="['/Work']"><i class="fa fa-gears"></i> Work </a>    
                 </li>
                 <li role="presentation" [class.active]="currentTab=='history'">
-                  <a href="#" [router-link]="['/History']">History</a> 
+                  <a href="#" [router-link]="['/History']"><i class="fa fa-book"></i> History</a> 
                 </li>
               </ul>
             </div>
