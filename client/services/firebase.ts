@@ -79,4 +79,55 @@ export class FirebaseService {
         });
     }
 
+    getUser(provider, providerUserId) {
+        var _this = this;
+
+        return new Promise(function(resolve, reject) {
+            var provRef    = _this.fbRef.child('authProviders').child(provider);
+            var userIdsRef = _this.fbRef.child('userIdentities');
+
+            provRef.child(providerUserId).once('value', function(data) {
+                var providerInfo = data.val();
+                if (providerInfo == null) {
+                    // Don't try to match to an existing user at this point 
+                    // (rely on manual matching-up for now).  So, create a new userId.
+
+                    // Increment userId count and set it to new entry in an atomic transation
+                    userIdsRef.child('userIdCount').transaction(function(count) {
+                        return count + 1;
+                    }, function(err, committed, data) {
+                        if (err) {
+                            reject(err);
+                        } else if (committed) {
+                            var newUserId = data.val();
+
+                            var provEntry = {};
+                            provEntry[providerUserId] = {userId : newUserId};
+
+                            provRef.update(provEntry, function() {
+
+                                var userEntry = {};
+                                var authProv  = {};
+                                authProv[provider] = providerUserId;
+                                userEntry[newUserId] = {userId        : newUserId,  // convenience
+                                                        authProviders : authProv,
+                                                        created       : new Date()}
+
+                                userIdsRef.update(userEntry, function() {
+                                    resolve(userEntry[newUserId]);
+                                });
+                            })
+
+                        } else {
+                            reject("getUser: no error but not commited!?");
+                        }
+                    });
+                } else {
+                    userIdsRef.child(providerInfo.userId).once('value', function(data) {
+                        resolve(data.val());
+                    });
+                }
+            });
+        });
+    }
 }

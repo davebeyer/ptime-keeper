@@ -74,6 +74,7 @@ export class UserService {
 
     updateUserData(authData) {
         var provider;
+        var providerUserId;
 
         if (authData) {
             provider = authData.provider;
@@ -88,7 +89,7 @@ export class UserService {
             this.lastName        = authData.google.cachedUserProfile.family_name;
             this.profileImageURL = authData.google.profileImageURL;
             this.fullName        = authData.google.cachedUserProfile.name;
-            this.userId          = null; // TBD
+            providerUserId       = authData.google.id;
             break;
         default:
             this.isLoggedIn      = false;
@@ -97,8 +98,18 @@ export class UserService {
             this.lastName        = null; 
             this.profileImageURL = null;
             this.fullName        = null;
-	    this.userId          = null;
+            providerUserId       = null;
             break;
+        }
+
+        if (providerUserId == null) {
+            this.userId = null;
+        } else {
+            this.fBase.getUser(provider, providerUserId).then(function(userInfo) {
+                // DB: TODO - set all other info here too
+                console.log("UserId is ", userInfo['userId']);
+                this.userId = userInfo['userId'];
+            });
         }
     }
 }
