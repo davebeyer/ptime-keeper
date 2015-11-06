@@ -12,8 +12,8 @@ Need to configure two main places:
       * Secret: gN...92  (See Firebase config for ptime-keeper for full secret)
 * [Firebase Login & Auth page](https://ptime-keeper.firebaseio.com/?page=Auth).
 
-NOTE: Even though (this
-page)[https://www.firebase.com/docs/web/guide/login/google.html]
+NOTE: Even though [this
+page](https://www.firebase.com/docs/web/guide/login/google.html)
 claims that the authentication data returned by the Firebase
 authentication call should have a field `authData.google.email`, it doesn't
 seem to be present.  So, using the google unique user id as the user's
