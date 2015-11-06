@@ -32,7 +32,7 @@ var DBSetup = {
     },
 
     userIdentities : {
-        userIdCount : 0,
+        userIdCount : 100,  // leave room for special users at front
 
         dummyLocalUserId : {
             authProviders : {

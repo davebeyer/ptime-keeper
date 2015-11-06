@@ -30,7 +30,7 @@ export class UserService {
         this.fBase = fBase;
 
         // Initialize
-        this.updateUserData(null);
+        this.resetUserData();
 
         // Register the authentication callback
         this.fBase.fbRef.onAuth(function(authData) {
@@ -69,47 +69,70 @@ export class UserService {
 
     logout() {
         this.fBase.fbRef.unauth();
-        this.updateUserData(null);
+        this.resetUserData();
+    }
+
+    resetUserData() {
+        this.isLoggedIn      = false;
+        this.firstName       = null; 
+        this.lastName        = null; 
+        this.profileImageURL = null;
+        this.fullName        = null;
+        this.userId          = null;
     }
 
     updateUserData(authData) {
+        if (authData == null) {
+            this.resetUserData();
+            return;
+        }
+        
+        var _this = this;
+
         var provider;
         var providerUserId;
 
-        if (authData) {
-            provider = authData.provider;
-        } else {
-            provider = null;
-        }
+        //
+        // First determine provider & provider's user ID in order to 
+        // lookup (or create) user info record
+        //
+
+        provider = authData.provider;
 
         switch(provider) {
         case 'google':
-            this.isLoggedIn      = true;
-            this.firstName       = authData.google.cachedUserProfile.given_name;
-            this.lastName        = authData.google.cachedUserProfile.family_name;
-            this.profileImageURL = authData.google.profileImageURL;
-            this.fullName        = authData.google.cachedUserProfile.name;
-            providerUserId       = authData.google.id;
+            providerUserId = authData.google.id;
             break;
         default:
-            this.isLoggedIn      = false;
-
-            this.firstName       = null; 
-            this.lastName        = null; 
-            this.profileImageURL = null;
-            this.fullName        = null;
-            providerUserId       = null;
-            break;
+            console.error("UserService:updateUserData - Unsupported provider", provider);
+            return;
         }
 
-        if (providerUserId == null) {
-            this.userId = null;
-        } else {
-            this.fBase.getUser(provider, providerUserId).then(function(userInfo) {
-                // DB: TODO - set all other info here too
-                console.log("UserId is ", userInfo['userId']);
-                this.userId = userInfo['userId'];
-            });
-        }
+        //
+        // Look up user info, then set all user data at once 
+        // (so UI is updated all at once)
+        //
+
+        this.fBase.getUser(provider, providerUserId).then(function(userInfo) {
+            console.log("UserId is ", userInfo['userId']);
+
+            _this.userId = userInfo['userId'];
+
+            // TODO: This stuff may later be in returned userInfo record, or 
+            //       from other associated provider records
+            switch(provider) {
+            case 'google':
+                _this.isLoggedIn      = true;
+                _this.firstName       = authData.google.cachedUserProfile.given_name;
+                _this.lastName        = authData.google.cachedUserProfile.family_name;
+                _this.profileImageURL = authData.google.profileImageURL;
+                _this.fullName        = authData.google.cachedUserProfile.name;
+                break;
+            default:
+            console.error("UserService:updateUserData - Unsupported provider", provider);
+            return;
+            }
+
+        });
     }
 }
