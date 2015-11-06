@@ -1,4 +1,4 @@
-# User Authentication
+# User Login / authentication
 
 ## Google OAth
 

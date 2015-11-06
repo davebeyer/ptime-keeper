@@ -5,42 +5,78 @@ import {Inject} from 'angular2/core';
 
 var Firebase = require('firebase/lib/firebase-web.js');
 
+var DfltLongBreak_mins  = 15;
+var DfltShortBreak_mins = 5;
+var DfltWork_mins       = 25;
+
+var DBSetup = {
+    defaults : {
+        longBreak_mins   : DfltLongBreak_mins,
+        shortBreak_mins  : DfltShortBreak_mins,
+        work_mins        : DfltWork_mins
+    },
+
+    authProviders : {
+        facebook : {
+            dummyFBUserId : {
+                userId : 'dummyLocalUserId'
+                // Possible other info 
+            }
+        },
+        google   : {
+            dummyGoogUserId : {
+                userId : 'dummyLocalUserId',
+                // Possible other info 
+            }
+        },
+    },
+
+    userIdentities : {
+        userIdCount : 0,
+
+        dummyLocalUserId : {
+            authProviders : {
+                google   : 'dummyGoogUserId',
+                facebook : 'dummyFBUserId'
+            }
+
+            // Possible other info (but probably best not to 
+            // copy info from authProviders, store that under 
+            // appropriate authProvider entry
+        }
+    },
+
+    userData : {
+        dummyLocalUserId : {
+            created_dt : "2015-11-01"
+        }
+    }
+};
+
+
 export class FirebaseService {
     fbRef : Firebase;
 
     constructor() {
-	console.log("firebase.ts: in FirebaseService constructor")
+        console.log("firebase.ts: in FirebaseService constructor")
         this.fbRef  = new Firebase('https://ptime-keeper.firebaseio.com');
     }
 
-/*
-    prepareDB(userEmail, doneCB) {
+    initDB() {
         var _this = this;
-        
-        _this.fbRef.once('value', function(data) {
 
-            if (data.child('vocabs').exists()) {
-                _this.prepareDBForUser(doneCB);
-            } else {
-                var dbSetup = {
-                    vocabs : {
-                        accounts   : {
-                            Schwab : 'Schwab',
-                            TD     : 'TD Ameritrade'
-                        },
-                        strategies : {
-                            MM     : 'what MM stands for',
-                            CC     : 'what CC stands for',
-                            'CC-a' : 'what CC-a stands for'
-                        }
-                    }
-                };
+        return new Promise(function(resolve, reject) {
 
-                _this.fbRef.update( dbSetup, function() {
-                    _this.prepareDBForUser(doneCB);
-                }); 
-            }
-        });       
-	}
-*/
+            _this.fbRef.once('value', function(data) {
+                if (data.child('defaults').exists()) {
+                    resolve("DB already exists.");
+                } else {
+                    _this.fbRef.update(DBSetup, function() {
+                        resolve("DB initialized");
+                    }); 
+                }
+            });
+        });
+    }
+
 }

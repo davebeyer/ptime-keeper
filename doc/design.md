@@ -80,10 +80,20 @@ Saves data in the cloud, but also works offline
     * long_break
     * short_break
 
-* Users
-    * user_id(key)   -  For now 'google:' + <google.id>
+* UserIdenties
+   * google 
+       * google_uid
+           * user_id
+   * facebook
+       * facebookuid
+           * user_id
+   * local
+       * user_id
+           * provider_uids (list)
+
+* UserData
+    * user_id(key) - auto assigned
     * created_dt
-    * reviwer_email_address  (e.g., a parent?)
 
     * Categories
         * category_name(key)

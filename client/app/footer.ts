@@ -15,7 +15,7 @@ import {UserService}       from '../services/user';
     template: `
         <nav class="navbar navbar-default navbar-fixed-bottom">
           <div class="container">
-            <div class="navbar-header"  [hidden]="!userServ.user.isLoggedIn">
+            <div class="navbar-header"  [hidden]="!userServ.isLoggedIn">
               <ul class="nav nav-tabs" style="width:100%">
                 <li role="presentation" [class.active]="currentTab=='plan'">   
                   <a href="#" [router-link]="['/Plan']"><i class="fa fa-tasks"></i> Plan </a>    

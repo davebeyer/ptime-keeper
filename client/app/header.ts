@@ -18,15 +18,15 @@ import {UserService}       from '../services/user';
 	    <div class="row" style="padding-top: 8px">
                 <h4 class="col-xs-8">Pomodoro Time Keeper</h4>
 
-                <div class="col-xs-4 dropdown pull-right" [hidden]="!userServ.user.isLoggedIn">
+                <div class="col-xs-4 dropdown pull-right" [hidden]="!userServ.isLoggedIn">
                   <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    <img src="{{userServ.user.profileImageURL}}" style="height:25px"/> 
-                    &nbsp; {{userServ.user.firstName}}
+                    <img src="{{userServ.profileImageURL}}" style="height:25px"/> 
+                    &nbsp; {{userServ.firstName}}
                     <span class="caret"></span>
                   </button>
                   <ul class="dropdown-menu">
                     <li class="dropdown-header">
-                      {{userServ.user.fullName}}
+                      {{userServ.fullName}}
                     </li>
                     <li role="seperator" class="divider"></li>
                     <li><a href="#" [router-link]="['/Preferences']"><i class="fa fa-wrench"></i> Preferences</a></li>

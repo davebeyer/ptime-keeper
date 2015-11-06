@@ -12,11 +12,11 @@ import {UserService} from '../services/user';
     template: `
         <div class="text-center" style="width:100%">
 
-          <div [hidden]="userServ.user.isLoggedIn">
+          <div [hidden]="userServ.isLoggedIn">
             <table style="margin:40px auto">
               <tr>
                 <td width="40%"> <img src="/img/tomato-md.png"/> </td>
-                <td> <h3>  Welcome to <br/> Pomodoro Time Keeper!</h3> </td>
+                <td> <h3>  Welcome to the <br/> Pomodoro Time Keeper!</h3> </td>
               </tr>
               <tr>
                 <td colspan="2">
@@ -36,11 +36,11 @@ import {UserService} from '../services/user';
             </table>
           </div>
 
-          <div [hidden]="!userServ.user.isLoggedIn" class="text-center">
+          <div [hidden]="!userServ.isLoggedIn" class="text-center">
             <table style="margin:35px auto">
               <tr>
                 <td width="40%"> <img src="/img/tomato-md.png"/> </td>
-                <td> <h2> Welcome<br/>{{userServ.user.firstName}}! </h2></td>
+                <td> <h2> Welcome<br/>{{userServ.firstName}}! </h2></td>
               </tr>
               <tr>
                 <td colspan="2">

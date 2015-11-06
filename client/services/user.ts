@@ -6,8 +6,16 @@ import {Inject} from 'angular2/core';
 import {FirebaseService} from './firebase';
 
 export class UserService {
-    user  : any;
     fBase : FirebaseService;
+    
+    // User Data
+    isLoggedIn : boolean;
+    userId     : number;
+
+    firstName  : string;
+    lastName   : string;
+    fullName   : string;
+    profileImageURL : string;
 
     // NOTE: Since this class doesn't have any annotations 
     //       (and thus no angular2 metadata attached by default), we need
@@ -20,7 +28,6 @@ export class UserService {
         var _this  = this;
 
         this.fBase = fBase;
-        this.user  = {};
 
         // Initialize
         this.updateUserData(null);
@@ -65,21 +72,7 @@ export class UserService {
         this.updateUserData(null);
     }
 
-    isLoggedIn() {
-        return this.user.isLoggedIn;
-    }
-
-    firstName() {
-        return this.user.firstName;
-    }
-
-    profileImageURL() {
-        return this.user.profileImageURL;
-    }
-
     updateUserData(authData) {
-        this.user._authData   = authData;
-
         var provider;
 
         if (authData) {
@@ -90,20 +83,21 @@ export class UserService {
 
         switch(provider) {
         case 'google':
-            this.user.isLoggedIn      = true;
-            this.user.firstName       = this.user._authData.google.cachedUserProfile.given_name;
-            this.user.lastName        = this.user._authData.google.cachedUserProfile.family_name;
-            this.user.profileImageURL = this.user._authData.google.profileImageURL;
-            this.user.fullName        = this.user._authData.google.cachedUserProfile.name;
-            this.user.id              = 'google:' + this.user._authData.google.id;
+            this.isLoggedIn      = true;
+            this.firstName       = authData.google.cachedUserProfile.given_name;
+            this.lastName        = authData.google.cachedUserProfile.family_name;
+            this.profileImageURL = authData.google.profileImageURL;
+            this.fullName        = authData.google.cachedUserProfile.name;
+            this.userId          = null; // TBD
             break;
         default:
-            this.user.isLoggedIn      = false;
-            this.user.firstName       = null; 
-            this.user.lastName        = null; 
-            this.user.profileImageURL = null;
-            this.user.fullName        = null;
-            this.user.emailAdr        = null;
+            this.isLoggedIn      = false;
+
+            this.firstName       = null; 
+            this.lastName        = null; 
+            this.profileImageURL = null;
+            this.fullName        = null;
+	    this.userId          = null;
             break;
         }
     }

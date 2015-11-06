@@ -42,27 +42,33 @@ declare var jQuery:any;
 })
 
 @RouteConfig([
-    { path: '/plan',    as: 'Plan',    	   component: Plan },
-    { path: '/work',    as: 'Work',    	   component: Work },
-    { path: '/history', as: 'History', 	   component: History },
-    { path: '/signin',  as: 'SignIn',  	   component: SignIn },
+    { path: '/plan',    as: 'Plan',        component: Plan },
+    { path: '/work',    as: 'Work',        component: Work },
+    { path: '/history', as: 'History',     component: History },
+    { path: '/signin',  as: 'SignIn',      component: SignIn },
     { path: '/prefs',   as: 'Preferences', component: Preferences }
 ])
 
 class PomodoroTimeKeeper {
     userServ : UserService;
     router   : Router;
+    fBase    : FirebaseService;
 
-    constructor(router : Router, userServ : UserService) {
+    constructor(router : Router, userServ : UserService, fBase : FirebaseService) {
         this.router   = router;
         this.userServ = userServ;
+        this.fBase    = fBase;
 
         console.log("main.ts: in PomodoroTimeKeeper constructor")
     }
 
     onInit() {
-	// Always start on the signin page, which will give a welcome 
-	// message if already signed in
+        this.fBase.initDB().then(function(msg) {
+            console.log(msg);
+        });
+
+        // Always start on the signin page, which will give a welcome 
+        // message if already signed in
 
         // NOTE: here we use the router *name* not the actual route URL!
         this.router.navigate(['./SignIn']);    // SignIn
@@ -78,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function(){
               // List of universally injectable providers
               [
                   UserService,
-		  FirebaseService,
+                  FirebaseService,
                   ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
               ]
