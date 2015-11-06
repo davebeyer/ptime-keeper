@@ -18,7 +18,7 @@ import {Plan}            from './plan';
 import {Work}            from './work';
 import {History}         from './history';
 
-import {UserService}     from '../services/users';
+import {UserService}     from '../services/user';
 import {FirebaseService} from '../services/firebase';
 
 declare var jQuery:any;

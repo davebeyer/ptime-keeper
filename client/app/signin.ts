@@ -2,7 +2,7 @@
 
 import {Component, View}          from 'angular2/angular2';
 
-import {UserService} from '../services/users';
+import {UserService} from '../services/user';
 
 @Component({
     selector: 'signin'

@@ -3,7 +3,7 @@
 import {Component, View, NgClass} from 'angular2/angular2';
 import {Router, RouterLink}       from 'angular2/router';
 
-import {UserService}       from '../services/users';
+import {UserService}       from '../services/user';
 
 @Component({
     selector: 'footer'
