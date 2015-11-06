@@ -67,49 +67,50 @@ Saves data in the cloud, but also works offline
 
   * For all, gears icon to edit today's session or categories (or history?)
 
-History:
-  Estimates vs Actuals, Work time vs Pauses
-  Pie chart, scatter/bar chart
-  Daily, Weekly, Monthly, Annually
-  Drill down to daily level to show detailed work
+## History:
+* Estimates vs Actuals, Work time vs Pauses
+* Pie chart, scatter/bar chart
+* Daily, Weekly, Monthly, Annually
+* Drill down to daily level to show detailed work
 
-Database:
-  - Users
-    = user_id
-    = email_address
-    = password
-    = (or FB/Google/.. credentials?)
-    = reviewer_email_address
-    = created_dt
+## Database info
 
-  - Categories
-    = category_id
-    = user_id
-    = category_name
-    = category_color
-    = created_dt
+* Defaults
+    * pomodoro_mins 
+    * long_break
+    * short_break
 
-  - Sessions
-    = session_id
-    = user_id
-    = created_dt
-    = working_mins
-    = break_mins
-    = pause_mins
+* Users
+    * email_address(key)
+    * created_dt
+    * reviwer_email_address  (e.g., a parent?)
 
-  - Activities
-    = activity_id
-    = session_id
-    = category_id
-    = details
-    = estimate_poms (supports fractions, to 1/4ths)
-    = actual_poms (support fractions)
-    = created_dt
-    = started_dt
-    = finished_dt
+    * Categories
+        * category_name(key)
+        * category_color
+        * created_dt
 
-  - Events
-    = user_id
-    = event_dt
-    = event_type (Activity_start, Activity_finish, Break)
-    = activity_id
+    * Sessions
+        * session_id(key) = "session-" + <datetime>
+        * created_dt
+
+        * Activities list
+            * activity_id(key)  auto assigned list key
+            * category_name
+            * details
+            * estimate_poms (supports fractions, to 1/4ths)
+            * actual_poms (convenience, computed from Events)
+            * created_dt
+            * started_dt  (convenience, computed from Events)
+            * finished_dt (ditto)
+
+    * Events
+        * event_dt
+        * event_type (Start, Resume, Progress, Break, Complete)
+        * session_id
+        * activity_id
+
+    * Preferences
+        * pomodoro_mins
+        * short_break
+	* long_break 

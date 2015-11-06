@@ -12,4 +12,33 @@ export class FirebaseService {
 	console.log("firebase.ts: in FirebaseService constructor")
         this.fbRef  = new Firebase('https://ptime-keeper.firebaseio.com');
     }
+
+    prepareDB(userEmail, doneCB) {
+        var _this = this;
+        
+        _this.fbRef.once('value', function(data) {
+
+            if (data.child('vocabs').exists()) {
+                _this.prepareDBForUser(doneCB);
+            } else {
+                var dbSetup = {
+                    vocabs : {
+                        accounts   : {
+                            Schwab : 'Schwab',
+                            TD     : 'TD Ameritrade'
+                        },
+                        strategies : {
+                            MM     : 'what MM stands for',
+                            CC     : 'what CC stands for',
+                            'CC-a' : 'what CC-a stands for'
+                        }
+                    }
+                };
+
+                _this.fbRef.update( dbSetup, function() {
+                    _this.prepareDBForUser(doneCB);
+                }); 
+            }
+        });       
+    }
 }
