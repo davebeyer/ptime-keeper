@@ -13,6 +13,7 @@ export class FirebaseService {
         this.fbRef  = new Firebase('https://ptime-keeper.firebaseio.com');
     }
 
+/*
     prepareDB(userEmail, doneCB) {
         var _this = this;
         
@@ -40,5 +41,6 @@ export class FirebaseService {
                 }); 
             }
         });       
-    }
+	}
+*/
 }

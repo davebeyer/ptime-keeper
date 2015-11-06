@@ -81,7 +81,7 @@ Saves data in the cloud, but also works offline
     * short_break
 
 * Users
-    * email_address(key)
+    * user_id(key)   -  For now 'google:' + <google.id>
     * created_dt
     * reviwer_email_address  (e.g., a parent?)
 
@@ -113,4 +113,4 @@ Saves data in the cloud, but also works offline
     * Preferences
         * pomodoro_mins
         * short_break
-	* long_break 
+        * long_break 

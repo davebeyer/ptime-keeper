@@ -70,11 +70,11 @@ export class UserService {
     }
 
     firstName() {
-	return this.user.firstName;
+        return this.user.firstName;
     }
 
     profileImageURL() {
-	return this.user.profileImageURL;
+        return this.user.profileImageURL;
     }
 
     updateUserData(authData) {
@@ -94,15 +94,16 @@ export class UserService {
             this.user.firstName       = this.user._authData.google.cachedUserProfile.given_name;
             this.user.lastName        = this.user._authData.google.cachedUserProfile.family_name;
             this.user.profileImageURL = this.user._authData.google.profileImageURL;
-
-	    this.user.fullName        = this.user.firstName + ' ' + this.user.lastName;
+            this.user.fullName        = this.user._authData.google.cachedUserProfile.name;
+            this.user.id              = 'google:' + this.user._authData.google.id;
             break;
         default:
             this.user.isLoggedIn      = false;
             this.user.firstName       = null; 
             this.user.lastName        = null; 
             this.user.profileImageURL = null;
-	    this.user.fullName        = null;
+            this.user.fullName        = null;
+            this.user.emailAdr        = null;
             break;
         }
     }
