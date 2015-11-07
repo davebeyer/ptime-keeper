@@ -70,9 +70,11 @@ export class FirebaseService {
             _this.fbRef.once('value', function(data) {
                 if (data.child('defaults').exists()) {
                     resolve("DB already exists.");
+                    return;
                 } else {
                     _this.fbRef.update(DBSetup, function() {
                         resolve("DB initialized");
+                        return;
                     }); 
                 }
             });
@@ -98,6 +100,7 @@ export class FirebaseService {
                     }, function(err, committed, data) {
                         if (err) {
                             reject(err);
+                            return;
                         } else if (committed) {
                             var newUserId = data.val();
 
@@ -115,16 +118,19 @@ export class FirebaseService {
 
                                 userIdsRef.update(userEntry, function() {
                                     resolve(userEntry[newUserId]);
+                                    return;
                                 });
                             })
 
                         } else {
                             reject("getUser: no error but not commited!?");
+                            return;
                         }
                     });
                 } else {
                     userIdsRef.child(providerInfo.userId).once('value', function(data) {
                         resolve(data.val());
+                        return;
                     });
                 }
             });

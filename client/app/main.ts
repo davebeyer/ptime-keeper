@@ -20,6 +20,7 @@ import {History}         from './history';
 
 import {UserService}     from '../services/user';
 import {FirebaseService} from '../services/firebase';
+import {SettingsService} from '../services/settings';
 
 declare var jQuery:any;
 
@@ -85,6 +86,7 @@ document.addEventListener('DOMContentLoaded', function(){
               [
                   UserService,
                   FirebaseService,
+		  SettingsService,
                   ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
               ]

@@ -20,7 +20,7 @@ export class UserService {
     // NOTE: Since this class doesn't have any annotations 
     //       (and thus no angular2 metadata attached by default), we need
     //       to use @Inject here to force metadata to be added, to support
-    //       dependency injection!
+    //       dependency injection.
 
     constructor(@Inject(FirebaseService) fBase : FirebaseService) {
         console.log("users.ts: UserService constructor")
