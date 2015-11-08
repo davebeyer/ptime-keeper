@@ -12,6 +12,8 @@ import {FirebaseService} from '../services/firebase';
 
 import {randomInt}       from '../public/js/utils';
 
+var NullCategory = {name : '', color : 'black'};
+
 @Component({
     selector: 'plan-block'
 })
@@ -19,30 +21,33 @@ import {randomInt}       from '../public/js/utils';
 @View({
     directives: [Typeahead, FORM_DIRECTIVES, NgIf, NgFor],
 
-    styles: [".form-wrapper {margin-left: 20px;}"],
+    styles: [
+	".form-wrapper      {margin-left: 20px;}",
+	".new-activity-form {border: 3px solid white; padding: 10px}"
+    ],
 
     template: `
         <h1 class="page-title">My plan for today</h1>
 
-        <div  [hidden]="newCategoryMode || !categories.length" class="row">
+        <div  [hidden]="(viewMode != 'selectCat') || !categories.length" class="row">
           <typeahead class="col-xs-8" placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
           </typeahead>
           <button (click)="createNewCategory($event)" class="col-xs-3 btn btn-default">Create new</button>
         </div>
 
-        <div  [hidden]="newCategoryMode || categories.length" class="row">
+        <div  [hidden]="(viewMode != 'selectCat') || categories.length" class="row">
           <button (click)="createNewCategory($event)" class="col-xs-10 col-xs-offset-1 btn btn-default">Create your first work category</button>
         </div>
 
-        <div  [hidden]="!newCategoryMode" class="form-wrapper">
+        <div  [hidden]="(viewMode != 'newCat')" class="form-wrapper">
           <h3> Create a new work category </h3>
-          <form [ng-form-model]="newCatForm" #f="form" (ng-submit)="addCategory(f.value)" class="form-horizontal">
+          <form [ng-form-model]="newCatForm" #fcat="form" (ng-submit)="addCategory(fcat.value)" class="form-horizontal">
 
             <div class="form-group" [class.has-error]="!catname.valid">
-              <div class="col-xs-5">
+              <div class="col-xs-7">
                 <input type="text" class="form-control" ng-control="name" #catname="form">
               </div>
-              <label  class="col-xs-7">Name</label>
+              <label  class="col-xs-5">Name</label>
             </div>
             <div class="row">
               <div class="col-xs-12">
@@ -51,37 +56,67 @@ import {randomInt}       from '../public/js/utils';
               </div>
             </div>
 
-            <div class="form-group" [class.has-error]="!catcolor.valid">
-              <div class="col-xs-5">
-                <select class="form-control" ng-control="color" #catcolor="form">
+            <div class="form-group">
+              <div class="col-xs-7">
+                <select class="form-control" ng-control="color">
                   <option *ng-for="#opt of categoryColors" value="{{opt}}">{{opt}}</option>
                 </select>
               </div>
-              <label  class="col-xs-7">Color</label>
-            </div>
-            <div class="row">
-              <div [hidden]="catcolor.valid"  class="col-xs-12 bg-warning">Must be a valid color string.</div>
+              <label  class="col-xs-5">Color</label>
             </div>
 
-            <button type="submit" class="btn btn-default" [disabled]="!f.valid">Save</button>
+            <button type="submit" class="btn btn-default" [disabled]="!fcat.valid">Save</button>
             <button (click)="cancelNewCategory($event)" class="btn btn-default">Cancel</button>
           </form>
         </div>
+
+        <div  [hidden]="viewMode != 'newWork'" class="form-wrapper">
+          <h3> New activity details </h3>
+          <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
+                class="form-horizontal new-activity-form" [style.border-color]="selectedCategory.color">
+
+            <div class="form-group">
+              <h4 class="category-title col-xs-5">
+                {{selectedCategory.name}}
+              </h4>
+
+              <div class="col-xs-6">
+                <select class="form-control" ng-control="poms">
+                  <option *ng-for="#opt of pomodoroOpts" value="{{opt.value}}">{{opt.text}}</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-xs-11">
+                <input placeholder="Description (optional)"type="text" class="form-control" ng-control="descr">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-default" [disabled]="!fwork.valid">Save</button>
+            <button (click)="cancelNewActivity($event)" class="btn btn-default">Cancel</button>
+          </form>
+        </div>
+
         `
 
 })
 
 export class Plan implements CanReuse {
     categories       : Array<any>;
-    categoryColors   : Array<string>;
+    selectedCategory : any;
 
-    newCategoryMode  : boolean;
+    categoryColors   : Array<string>;
+    pomodoroOpts     : Array<any>;
+
+    viewMode         : string;
 
     userServ         : UserService;
     fBase            : FirebaseService;
     saveMsg          : SaveMsg;
 
     newCatForm       : ControlGroup;
+    newActForm       : ControlGroup;
 
     constructor(userServ : UserService, fb : FormBuilder, saveMsg : SaveMsg, fBase : FirebaseService) {
         console.log("plan.ts: in constructor")
@@ -91,16 +126,26 @@ export class Plan implements CanReuse {
         this.saveMsg  = saveMsg;
 
         this.categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
+        this.pomodoroOpts   = [{value : '1', text : '1 pomodoro'}];
+        for (var i = 2; i <= 10; i++) {
+            this.pomodoroOpts.push({value : i.toString(), text : i + " pomodoros"});
+        }
 
         this.newCatForm = fb.group({
             'name'  : ['', this.uniqueCategory.bind(this)],
             'color' : ['', Validators.required]
         });
+
+        this.newActForm = fb.group({
+            'descr'  : [''],
+            'poms'   : ['2']
+        });
     }
 
     onInit() {
-        this.newCategoryMode  = false;
+        this.viewMode = 'selectCat';
         this.categories       = [];
+        this.selectedCategory = NullCategory;
         this.getCategories();
     }
 
@@ -143,11 +188,11 @@ export class Plan implements CanReuse {
             this.newCatForm.controls['color']['updateValue'](this.categoryColors[colorNum]);
         }
 
-        this.newCategoryMode = true;
+        this.viewMode = 'newCat';
     }
     cancelNewCategory($event) {
         $event.preventDefault();
-        this.newCategoryMode = false;
+        this.viewMode = 'selectCat';
     }
 
     addCategory(formValue) {
@@ -177,7 +222,8 @@ export class Plan implements CanReuse {
 
             // Flash 'saved' and return to Planning view
             _this.saveMsg.flashMsg();
-            _this.newCategoryMode = false;
+            _this.viewMode = 'newWork';
+            _this.selectedCategory = catEntry;
         });
     }
 
@@ -239,7 +285,24 @@ export class Plan implements CanReuse {
 
     selectCategory(item) {
         console.log("plan.ts: Select category", item);
+        this.viewMode = 'newWork';
+        this.selectedCategory = item;
     }
+
+    cancelNewActivity($event) {
+        $event.preventDefault();
+        this.viewMode = 'selectCat';
+    }
+
+    addActivity(formValue) {
+        // descr & poms
+        console.log("Adding activity ", formValue);
+        this.viewMode = 'selectCat';
+    }
+
+    //
+    // Misc
+    //
 
     canReuse(next: ComponentInstruction, prev: ComponentInstruction) {
         return true;

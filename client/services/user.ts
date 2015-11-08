@@ -36,6 +36,11 @@ export class UserService {
         this.fBase.fbRef.onAuth(function(authData) {
             _this.updateUserIdData(authData);
         });
+
+	// ///////////////////////
+	// Fake data for testing
+	// this.setupDummyUser();
+	// ///////////////////////
     }
 
     login(provider) {
@@ -79,6 +84,15 @@ export class UserService {
         this.profileImageURL = null;
         this.fullName        = null;
         this.userId          = null;
+    }
+
+    setupDummyUser() {
+        this.isLoggedIn      = true;
+        this.firstName       = "Dummy"; 
+        this.lastName        = "User"; 
+        this.profileImageURL = "";
+        this.fullName        = "Dummy User";
+        this.userId          = 10;
     }
 
     updateUserIdData(authData) {
