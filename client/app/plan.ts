@@ -24,10 +24,14 @@ import {randomInt}       from '../public/js/utils';
     template: `
         <h1 class="page-title">My plan for today</h1>
 
-        <div  [hidden]="newCategoryMode" class="row">
+        <div  [hidden]="newCategoryMode || !categories.length" class="row">
           <typeahead class="col-xs-8" placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
           </typeahead>
           <button (click)="createNewCategory($event)" class="col-xs-3 btn btn-default">Create new</button>
+        </div>
+
+        <div  [hidden]="newCategoryMode || categories.length" class="row">
+          <button (click)="createNewCategory($event)" class="col-xs-10 col-xs-offset-1 btn btn-default">Create your first work category</button>
         </div>
 
         <div  [hidden]="!newCategoryMode" class="form-wrapper">
@@ -42,8 +46,8 @@ import {randomInt}       from '../public/js/utils';
             </div>
             <div class="row">
               <div class="col-xs-12">
-                <div *ng-if="catname.dirty && catname.control.hasError('empty')"    class="bg-warning">Must consist of at least some letters or numbers.</div>
-                <div *ng-if="catname.control.hasError('unique')"   class="bg-warning">This category already exists.</div>
+                <div *ng-if="catname.dirty && catname.control.hasError('validchars')" class="bg-warning">Must consist of at least some letters or numbers.</div>
+                <div *ng-if="catname.control.hasError('unique')" class="bg-warning">This category already exists.</div>
               </div>
             </div>
 
@@ -188,14 +192,14 @@ export class Plan implements CanReuse {
 
     uniqueCategory (ctrl : Control) : any {
         if (!ctrl.value) {
-            // Special case, allow this without showing an error
-            return null;
+            // Special case, form invalid but don't show an error
+            return {nonempty: true};
         }
         
         var value = this.nameToCategoryId(ctrl.value);
 
         if (!value) {
-            return {empty: true};
+            return {validchars: true};
         }
 
         for (var i = 0; i < this.categories.length; i++) {
