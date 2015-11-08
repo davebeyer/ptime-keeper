@@ -136,6 +136,23 @@ export class UserService {
         });
     }
 
+    updateUserData(path, data) {
+        var _this = this;
+
+        return new Promise(function(resolve, reject) {
+            var userId = _this.userId;
+            if (!userId) {
+                reject("No signed in user, so unable to update user data!");
+            }
+
+            var dataRef = _this.fBase.fbRef.child('userData').child(userId.toString()).child(path);
+
+            dataRef.update(data, function() {
+		resolve();
+            });
+        });
+    }
+
     getUserData(path) {
         var _this = this;
 

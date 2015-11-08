@@ -18,7 +18,7 @@ declare var jQuery:any;
 
 @View({
     template: `
-        <input type="text" data-provide="typeahead"  placeholder="{{placeholder}}">
+        <input class="form-control" type="text" data-provide="typeahead"  placeholder="{{placeholder}}">
 	`
 })
 

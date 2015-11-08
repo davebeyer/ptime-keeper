@@ -1,7 +1,7 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
 import {Component, View}                from 'angular2/angular2';
-import {FORM_DIRECTIVES, FormBuilder, Control, ControlGroup, Validators, NgIf} from 'angular2/angular2';
+import {FORM_DIRECTIVES, FormBuilder, Control, ControlGroup, Validators, NgIf, NgFor} from 'angular2/angular2';
 import {CanReuse, ComponentInstruction} from 'angular2/router';
 
 import {Typeahead}       from '../components/typeahead';
@@ -10,53 +10,57 @@ import {SaveMsg}         from '../components/savemsg';
 import {UserService}     from '../services/user';
 import {FirebaseService} from '../services/firebase';
 
+import {randomInt}       from '../public/js/utils';
+
 @Component({
     selector: 'plan-block'
 })
 
 @View({
-    directives: [Typeahead, FORM_DIRECTIVES, NgIf],
+    directives: [Typeahead, FORM_DIRECTIVES, NgIf, NgFor],
 
-    styles: ["form {margin-left: 20px;}"],
+    styles: [".form-wrapper {margin-left: 20px;}"],
 
     template: `
-        <h1 class="page-title">Plan for today</h1>
+        <h1 class="page-title">My plan for today</h1>
 
-        <div  [hidden]="newCategoryMode">
-          <typeahead placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
+        <div  [hidden]="newCategoryMode" class="row">
+          <typeahead class="col-xs-8" placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
           </typeahead>
-          <button (click)="getNewCategory($event)" class="btn btn-default">Add new category</button>
+          <button (click)="createNewCategory($event)" class="col-xs-3 btn btn-default">Create new</button>
         </div>
 
-        <div  [hidden]="!newCategoryMode">
-
+        <div  [hidden]="!newCategoryMode" class="form-wrapper">
+          <h3> Create a new work category </h3>
           <form [ng-form-model]="newCatForm" #f="form" (ng-submit)="addCategory(f.value)" class="form-horizontal">
 
             <div class="form-group" [class.has-error]="!catname.valid">
-            <div class="col-xs-5">
+              <div class="col-xs-5">
                 <input type="text" class="form-control" ng-control="name" #catname="form">
               </div>
-              <label  class="col-xs-7">Category name</label>
+              <label  class="col-xs-7">Name</label>
             </div>
             <div class="row">
               <div class="col-xs-12">
-                <div *ng-if="catname.control.hasError('required')" class="bg-warning">Required field.</div>
-                <div *ng-if="catname.control.hasError('empty')"    class="bg-warning">Must consist of at least some letters or numbers.</div>
+                <div *ng-if="catname.dirty && catname.control.hasError('empty')"    class="bg-warning">Must consist of at least some letters or numbers.</div>
                 <div *ng-if="catname.control.hasError('unique')"   class="bg-warning">This category already exists.</div>
               </div>
             </div>
 
             <div class="form-group" [class.has-error]="!catcolor.valid">
               <div class="col-xs-5">
-                <input type="text" class="form-control" ng-control="color" #catcolor="form">
+                <select class="form-control" ng-control="color" #catcolor="form">
+                  <option *ng-for="#opt of categoryColors" value="{{opt}}">{{opt}}</option>
+                </select>
               </div>
-              <label  class="col-xs-7">Category color</label>
+              <label  class="col-xs-7">Color</label>
             </div>
             <div class="row">
               <div [hidden]="catcolor.valid"  class="col-xs-12 bg-warning">Must be a valid color string.</div>
             </div>
 
-            <button type="submit" class="btn btn-default" [disabled]="!f.valid">Add work category</button>
+            <button type="submit" class="btn btn-default" [disabled]="!f.valid">Save</button>
+            <button (click)="cancelNewCategory($event)" class="btn btn-default">Cancel</button>
           </form>
         </div>
         `
@@ -65,6 +69,8 @@ import {FirebaseService} from '../services/firebase';
 
 export class Plan implements CanReuse {
     categories       : Array<any>;
+    categoryColors   : Array<string>;
+
     newCategoryMode  : boolean;
 
     userServ         : UserService;
@@ -80,8 +86,10 @@ export class Plan implements CanReuse {
         this.fBase    = fBase;
         this.saveMsg  = saveMsg;
 
+        this.categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
+
         this.newCatForm = fb.group({
-            'name'  : ['', Validators.compose([Validators.required, this.uniqueCategory.bind(this)])],
+            'name'  : ['', this.uniqueCategory.bind(this)],
             'color' : ['', Validators.required]
         });
     }
@@ -96,13 +104,77 @@ export class Plan implements CanReuse {
     // Work category handling
     //
 
-    getNewCategory($event) {
+    createNewCategory($event) {
         $event.preventDefault();
+
+        //
+        // Try to initialize color to unused color
+        //
+
+        var currentColors = [];
+        for (var i = 0; i < this.categories.length; i++) {
+            currentColors.push(this.categories[i].color.toLowerCase());
+        }
+
+        var color = this.newCatForm.controls['color'].value;
+
+        if (!color || currentColors.indexOf(color.toLowerCase()) > -1) {
+            var colorNum = randomInt(0, this.categoryColors.length);
+            var maxTries = this.categoryColors.length;
+
+            while (maxTries) {
+                color = this.categoryColors[colorNum].toLowerCase();
+
+                if (currentColors.indexOf(color) == -1) {
+                    break;  // found an unused color
+                }
+            
+                maxTries --;
+                colorNum ++;
+                if (colorNum >= this.categoryColors.length) {
+                    colorNum = 0;
+                }
+            }
+
+            this.newCatForm.controls['color']['updateValue'](this.categoryColors[colorNum]);
+        }
+
         this.newCategoryMode = true;
+    }
+    cancelNewCategory($event) {
+        $event.preventDefault();
+        this.newCategoryMode = false;
     }
 
     addCategory(formValue) {
-        console.log("Adding category", formValue);
+        var _this = this;
+
+        var catEntry =  {
+            color   : formValue.color.toLowerCase(),
+            created : new Date(),
+            name    : formValue.name
+        }
+
+        var newCat = {};
+        var id     = this.nameToCategoryId(formValue.name);
+        newCat[id] = catEntry;
+
+        console.log("Adding category", newCat);
+
+        this.userServ.updateUserData('categories', newCat).then(function() {
+            console.log("Successfully added work category");
+
+            // Add category to our list
+            catEntry['id'] = id;
+            _this.categories.push(catEntry);
+
+            // Clear out the category name
+            _this.newCatForm.controls['name']['updateValue']('');
+
+            // Flash 'saved' and return to Planning view
+            _this.saveMsg.flashMsg();
+            _this.newCategoryMode = false;
+        });
     }
 
     nameToCategoryId(name : string) {
@@ -115,6 +187,11 @@ export class Plan implements CanReuse {
     }
 
     uniqueCategory (ctrl : Control) : any {
+        if (!ctrl.value) {
+            // Special case, allow this without showing an error
+            return null;
+        }
+        
         var value = this.nameToCategoryId(ctrl.value);
 
         if (!value) {
