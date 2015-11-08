@@ -1,9 +1,10 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-import {Component, View, FORM_DIRECTIVES, FormBuilder, ControlGroup, Validators} from 'angular2/angular2';
+import {Component, View, NgIf, FORM_DIRECTIVES, FormBuilder, ControlGroup, Validators} from 'angular2/angular2';
 import {CanReuse, ComponentInstruction}   from 'angular2/router';
 
 import {SettingsService}                  from '../services/settings';
+import {SaveMsg}                          from '../components/savemsg';
 
 import {isInteger}                        from '../public/js/validators';
 
@@ -12,22 +13,51 @@ import {isInteger}                        from '../public/js/validators';
 })
 
 @View({
-    directives: [FORM_DIRECTIVES],
+    directives: [FORM_DIRECTIVES, NgIf],
+
+    styles: ["form {margin-left: 20px;}"],
+
     template: `
         <h1>Preferences</h1>
 
-        <form [ng-form-model]="prefsForm" #f="form" (ng-submit)="onSubmit(f.value)">
+        <form [ng-form-model]="prefsForm" #f="form" (ng-submit)="onSubmit(f.value)" [hidden]="!initialized"
+	      class="form-horizontal">
 
-          <div class="form-group">
-
-            <label>Work time (mins)</label>
-            <input type="text" class="form-control" ng-control="work_mins">
-
+          <div class="form-group" [class.has-error]="!work.valid">
+	    <div class="col-xs-3">
+              <input type="text" class="form-control" ng-control="work_mins" #work="form">
+            </div>
+            <label class="col-xs-9">Work time (mins)</label>
+          </div>
+          <div class="row">
+	    <div class="col-xs-12">
+              <!-- Demonstrate how to give specific errors -->
+              <div *ng-if="work.control.hasError('required')" class="bg-warning">Required field.</div>
+              <div *ng-if="work.control.hasError('integer')"  class="bg-warning">Must be an integer number of minutes.</div>
+	    </div>
           </div>
 
-          <p>Form value {{formValue()}}</p>
+          <div class="form-group" [class.has-error]="!shortbreak.valid">
+	    <div class="col-xs-3">
+              <input type="text" class="form-control" ng-control="shortBreak_mins" #shortbreak="form">
+            </div>
+            <label  class="col-xs-9">Short break time (mins)</label>
+          </div>
+          <div class="row">
+            <div [hidden]="shortbreak.valid"  class="col-xs-12 bg-warning">Must be an integer number of minutes</div>
+          </div>
 
-          <button type="submit" class="btn btn-default" [disabled]="!f.valid">Save</button>
+          <div class="form-group" [class.has-error]="!longbreak.valid">
+	    <div class="col-xs-3">
+              <input type="text" class="form-control" ng-control="longBreak_mins" #longbreak="form">
+            </div>
+            <label class="col-xs-9">Long break time (mins)</label>
+          </div>
+          <div class="row">
+            <div [hidden]="longbreak.valid"  class="col-xs-12 bg-warning">Must be an integer number of minutes</div>
+          </div>
+
+          <button type="submit" class="btn btn-default" [disabled]="!f.valid || !f.dirty">Save</button>
         </form>
         `
 })
@@ -36,12 +66,22 @@ import {isInteger}                        from '../public/js/validators';
 export class Preferences implements CanReuse {
     settings        : SettingsService;
     prefsForm       : ControlGroup;
+    initialized     : boolean;
+    saveMsg         : SaveMsg;
+    settingNames    : any;
 
-    constructor(settings : SettingsService, fb : FormBuilder) {
-        this.settings  = settings;
+    constructor(settings : SettingsService, fb : FormBuilder, saveMsg : SaveMsg) {
+        this.settings     = settings;
+	this.settingNames = ['work_mins', 'longBreak_mins', 'shortBreak_mins'];
+
         this.prefsForm = fb.group({
-	    'work_mins' : ['0', Validators.compose([Validators.required, isInteger])] 
+	    'work_mins'       : ['', Validators.compose([Validators.required, isInteger])],
+	    'shortBreak_mins' : ['', Validators.compose([Validators.required, isInteger])],
+	    'longBreak_mins'  : ['', Validators.compose([Validators.required, isInteger])] 
 	});
+
+	this.initialized = false;
+	this.saveMsg     = saveMsg;
 
         console.log("preferences.ts: in constructor")
     }
@@ -53,13 +93,21 @@ export class Preferences implements CanReuse {
     onInit() {
         var _this = this;
 
-        this.settings.getSetting('work_mins').then(function(value) {
-	    // updateValue method inherited from AbstactControl
-	    // (Typesript compiler doesn't recognize it as a property)
-            _this.prefsForm.controls['work_mins']['updateValue'](value.toString());
+        this.settings.getAllSettings().then(function(value) {
+	    var name;
 
-	    // Don't change dirty, this is initial state
-            // _this.prefsForm.controls['work_mins']['markAsDirty']();
+	    for (var i = 0; i < _this.settingNames.length; i++) {
+		// updateValue method inherited from AbstactControl
+		// (Typesript compiler doesn't recognize it as a property)
+		name = _this.settingNames[i];
+		_this.prefsForm.controls[name]['updateValue'](value[name].toString());
+
+		// Don't change dirty, this is initial state
+		// _this.prefsForm.controls[name]['markAsDirty']();
+	    }
+
+
+	    _this.initialized = true;
         });
 
         // this.settings.getSetting('shortBreak_mins').then(function(value) {
@@ -69,16 +117,24 @@ export class Preferences implements CanReuse {
 
 
     onSubmit(value) {
+        var _this = this;
+
+        // Note that this Save button is only visible if the input 
+	// is "dirty" (presumably modified) and "valid"
+
         console.log("Saving values ", value);
-        return;
 
-        var newSettings = {
-            work_mins: this.prefsForm.controls['work_mins'].value
-        };
+	var name;
+	var newSettings = {};
 
-        // TODO: Check that it changed
+	for (var i = 0; i < _this.settingNames.length; i++) {
+	    name = _this.settingNames[i];
+	    newSettings[name] = this.prefsForm.controls[name].value;
+	}
+
         this.settings.setUserSettings(newSettings).then(function() {
             console.log("Successfully updated settings");
+	    _this.saveMsg.flashMsg();
         });
     }
 

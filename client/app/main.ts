@@ -22,6 +22,8 @@ import {UserService}     from '../services/user';
 import {FirebaseService} from '../services/firebase';
 import {SettingsService} from '../services/settings';
 
+import {SaveMsg}         from '../components/savemsg';
+
 declare var jQuery:any;
 
 @Component({
@@ -87,6 +89,7 @@ document.addEventListener('DOMContentLoaded', function(){
                   UserService,
                   FirebaseService,
 		  SettingsService,
+		  SaveMsg,
                   ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
               ]

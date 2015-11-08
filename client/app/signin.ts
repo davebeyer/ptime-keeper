@@ -20,7 +20,7 @@ import {UserService} from '../services/user';
               </tr>
               <tr>
                 <td colspan="2">
-                  <h4 style="margin-top:40px">  
+                  <h4 style="margin-top:40px" [hidden]="!initialized">
                     Please sign in using
                       <a class="btn-sm btn-social btn-google" (click)="login('google')" role="button">
                       <span class="fa fa-google"></span> Google
@@ -54,12 +54,18 @@ import {UserService} from '../services/user';
 })
 
 export class SignIn {
-    userServ : UserService;
+    userServ    : UserService;
+    initialized : boolean;
 
     constructor(userServ : UserService) {
         console.log("signin.ts: in constructor")
 
-        this.userServ = userServ;
+        this.userServ    = userServ;
+	this.initialized = false;
+
+	// Unclear how to determine when Firebase has automatically authenticated
+	// (or not) pre-signedin user, so just wait a couple secs
+	setTimeout(function() {this.initialized = true;}.bind(this), 1500);
     }
 
     login(provider) {

@@ -8,7 +8,7 @@ import {Control} from 'angular2/angular2';
 
 export function isInteger (ctrl : Control) {
     if (! ctrl.value.match(/^[\d]*$/)){
-	return {invalidInteger: true};
+	return {integer: true};
     }
     return null;  // Valid
 }

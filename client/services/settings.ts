@@ -47,6 +47,34 @@ export class SettingsService {
         });
     }
 
+    getAllSettings() {
+        var _this = this;
+
+        return new Promise(function(resolve, reject) {
+            var dfltsRef = _this.fBase.fbRef.child('defaults');
+            var results  = {};
+
+            dfltsRef.once('value', function(data){
+                // start with defaults
+                if (data.val() != null) {
+                    results = data.val();
+                }
+                _this.getAllUserSettings().then(function(value) {
+                    // then overwrite user settings
+                    if (value != null) {
+                        var keys = Object.keys(value);
+                        var key;
+                        for (var i = 0; i < keys.length; i++) {
+                            key = keys[i];
+                            results[key] = value[key];
+                        }
+                    }
+                    resolve(results);
+		});
+            });
+	});
+    }
+    
     getUserSetting(name) {
         var _this = this;
 
@@ -60,7 +88,23 @@ export class SettingsService {
 
             userDataRef.child('preferences').child(name).once('value', function(data){
                 resolve(data.val()); // might be null if not present
+            });
+        });
+    }
+
+    getAllUserSettings() {
+        var _this = this;
+
+        return new Promise(function(resolve, reject) {
+            if (!_this.userServ.userId) {
+                resolve(null);
                 return;
+            }
+
+            var userDataRef = _this.fBase.fbRef.child('userData').child(_this.userServ.userId.toString());
+
+            userDataRef.child('preferences').once('value', function(data){
+                resolve(data.val()); // might be null if not present
             });
         });
     }
@@ -86,7 +130,6 @@ export class SettingsService {
 
             userDataRef.update(dbEntry, function() {
                 resolve();
-                return;
             });
         });
     }

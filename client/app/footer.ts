@@ -3,6 +3,7 @@
 import {Component, View, NgClass} from 'angular2/angular2';
 import {Router, RouterLink}       from 'angular2/router';
 
+import {SaveMsg}           from '../components/savemsg';
 import {UserService}       from '../services/user';
 
 @Component({
@@ -10,7 +11,7 @@ import {UserService}       from '../services/user';
 })
 
 @View({
-    directives: [RouterLink, NgClass],
+    directives: [RouterLink, NgClass, SaveMsg],
 
     template: `
         <nav class="navbar navbar-default navbar-fixed-bottom">
@@ -29,8 +30,19 @@ import {UserService}       from '../services/user';
               </ul>
             </div>
           </div>
+
+          <save-msg></save-msg>
         </nav>
-        `
+	`,
+
+    styles: [
+	`save-msg {
+	    position: absolute;
+	    right: 20px;
+	    bottom: 5px;
+	}`
+    ]
+
 })
 
 export class Footer {
