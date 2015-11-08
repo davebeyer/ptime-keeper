@@ -12,3 +12,4 @@ export function isInteger (ctrl : Control) {
     }
     return null;  // Valid
 }
+

@@ -62,6 +62,11 @@ export class FirebaseService {
         this.fbRef  = new Firebase('https://ptime-keeper.firebaseio.com');
     }
 
+    stringToKey(value) {
+        var result = value.replace(/[^a-zA-Z0-9_-]/g, '');
+        return result;
+    }
+
     initDB() {
         var _this = this;
 

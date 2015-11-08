@@ -4,6 +4,10 @@ body {
   padding-bottom: 70px; 
 }
 
+.page-title {
+  margin-top: 0px;	   
+}
+
 /* CSS tweaks for small displays */
 @media all and (max-width : 400px) {
   h1   { font-size: 30px; }

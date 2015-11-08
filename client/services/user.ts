@@ -34,7 +34,7 @@ export class UserService {
 
         // Register the authentication callback
         this.fBase.fbRef.onAuth(function(authData) {
-            _this.updateUserData(authData);
+            _this.updateUserIdData(authData);
         });
     }
 
@@ -59,7 +59,7 @@ export class UserService {
                     console.log("Login Failed!", error);
                 }
             } else if (authData) {
-                _this.updateUserData(authData); // accelerate the process a little
+                _this.updateUserIdData(authData); // accelerate the process a little
                 console.log("Authenticated successfully with payload:", authData);
             } else {
                 console.log("Login apparently failed, but without error info");
@@ -81,7 +81,7 @@ export class UserService {
         this.userId          = null;
     }
 
-    updateUserData(authData) {
+    updateUserIdData(authData) {
         if (authData == null) {
             this.resetUserData();
             return;
@@ -104,7 +104,7 @@ export class UserService {
             providerUserId = authData.google.id;
             break;
         default:
-            console.error("UserService:updateUserData - Unsupported provider", provider);
+            console.error("UserService:updateIdUserData - Unsupported provider", provider);
             return;
         }
 
@@ -129,10 +129,27 @@ export class UserService {
                 _this.fullName        = authData.google.cachedUserProfile.name;
                 break;
             default:
-            console.error("UserService:updateUserData - Unsupported provider", provider);
+            console.error("UserService:updateUserIdData - Unsupported provider", provider);
             return;
             }
 
+        });
+    }
+
+    getUserData(path) {
+        var _this = this;
+
+        return new Promise(function(resolve, reject) {
+            var userId = _this.userId;
+            if (!userId) {
+                resolve(null);
+            }
+
+            var dataRef = _this.fBase.fbRef.child('userData').child(userId.toString()).child(path);
+
+            dataRef.once('value', function(data) {
+                resolve(data.val());
+            });
         });
     }
 }

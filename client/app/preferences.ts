@@ -18,7 +18,7 @@ import {isInteger}                        from '../public/js/validators';
     styles: ["form {margin-left: 20px;}"],
 
     template: `
-        <h1>Preferences</h1>
+	<h1 class="page-title">Preferences</h1>
 
         <form [ng-form-model]="prefsForm" #f="form" (ng-submit)="onSubmit(f.value)" [hidden]="!initialized"
 	      class="form-horizontal">
@@ -68,7 +68,7 @@ export class Preferences implements CanReuse {
     prefsForm       : ControlGroup;
     initialized     : boolean;
     saveMsg         : SaveMsg;
-    settingNames    : any;
+    settingNames    : Array<string>;
 
     constructor(settings : SettingsService, fb : FormBuilder, saveMsg : SaveMsg) {
         this.settings     = settings;
