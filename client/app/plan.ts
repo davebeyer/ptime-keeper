@@ -24,14 +24,14 @@ var NullCategory = {name : '', color : 'black'};
     styles: [
         ".wrapper           {margin-left: 20px;}",
         ".new-activity-form {border: 4px solid white; padding: 10px}",
-        ".activity-entry    {border-left: 8px solid transparent; margin: 0 0 0 3px}",
+        ".activity-entry    {border-left: 8px solid transparent; margin: 2px 0 0 3px}",
         "#new-plan-wrapper  {margin: 30px 10px 0 5px;}"
     ],
 
     template: `
 
         <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length">
-          <h1 class="page-title">Current plan</h1>
+          <h2 class="page-title">Current plan activities</h2>
           <div class="row activity-entry" 
               *ng-for="#act of currentActivities" 
               [style.border-left-color]="categoryColor(act.category)">
@@ -41,13 +41,21 @@ var NullCategory = {name : '', color : 'black'};
               <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
             </div>
           </div>
+
+          <div class="row">
+            <hr class="col-xs-12" style="margin-bottom:0"/>
+          </div>
         </div>
 
-        <h1 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h1>
+        <h2 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h2>
 
-        <div  [hidden]="(viewMode != 'selectCat') || !categories.length">
-          <h3> New activity </h3>
-          <div class="wrapper row">
+        <div  [hidden]="makeChanges" class="row">
+          <button (click)="makeChanges = true" class="col-xs-10 col-xs-offset-1 btn btn-primary">Make changes</button>
+        </div>
+
+        <div  [hidden]="(viewMode != 'selectCat') || !categories.length || !makeChanges" class="wrapper">
+          <h3> Add a new activity </h3>
+          <div class="row">
             <typeahead class="col-xs-7" placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
             </typeahead>
             <button (click)="createNewCategory($event)" class="col-xs-4 btn btn-primary">New category</button>
@@ -58,7 +66,7 @@ var NullCategory = {name : '', color : 'black'};
           <button (click)="createNewCategory($event)" class="col-xs-10 col-xs-offset-1 btn btn-primary">Create your first work category</button>
         </div>
 
-        <div  [hidden]="(viewMode != 'newCat')">
+        <div  [hidden]="(viewMode != 'newCat') || !makeChanges">
           <h3> Create a new work category </h3>
           <form [ng-form-model]="newCatForm" #fcat="form" (ng-submit)="addCategory(fcat.value)" class="form-horizontal wrapper">
 
@@ -78,7 +86,7 @@ var NullCategory = {name : '', color : 'black'};
             <div class="form-group">
               <div class="col-xs-7">
                 <select class="form-control" ng-control="color">
-                  <option *ng-for="#opt of categoryColors" value="{{opt}}">{{opt}}</option>
+                  <option  *ng-for="#opt of categoryColors" value="{{opt}}"> {{opt}} </option>
                 </select>
               </div>
               <label  class="col-xs-5">Color</label>
@@ -118,7 +126,7 @@ var NullCategory = {name : '', color : 'black'};
           </form>
         </div>
 
-        <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length" class="row" id="new-plan-wrapper">
+        <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length  || !makeChanges" class="row" id="new-plan-wrapper">
           <button (click)="startNewPlan($event)" class="col-xs-12 btn btn-danger">Start an entirely new plan</button>
         </div>
 
@@ -139,6 +147,7 @@ export class Plan implements CanReuse {
     categoryColors   : Array<string>;
 
     viewMode         : string;
+    makeChanges      : boolean;
 
     userServ         : UserService;
     fBase            : FirebaseService;
@@ -180,7 +189,8 @@ export class Plan implements CanReuse {
     }
 
     onInit() {
-        this.viewMode = 'initializing';
+        this.viewMode         = 'initializing';
+	this.makeChanges      = false;
         this.categories       = [];
         this.categoryDict     = {};
 
@@ -273,6 +283,7 @@ export class Plan implements CanReuse {
 
             // Add category to our list
             _this.trackCategory(id, catEntry);
+            _this.categories.sort();
 
             // Clear out the category name
             _this.newCatForm.controls['name']['updateValue']('');
@@ -368,6 +379,11 @@ export class Plan implements CanReuse {
                         }
                         _this.currentActivities.sort(_this.sortActivities.bind(_this));
                         console.log("getCurrentActivities: current activities: ", _this.currentActivities);
+                    }
+
+                    if (!_this.currentActivities.length) {
+                        // Enable change forms
+                        _this.makeChanges = true;
                     }
                 });
             }

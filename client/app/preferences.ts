@@ -18,7 +18,7 @@ import {isInteger}                        from '../public/js/validators';
     styles: ["form {margin-left: 20px;}"],
 
     template: `
-        <h1 class="page-title">Preferences</h1>
+        <h2 class="page-title">Preferences</h2>
 
         <form [ng-form-model]="prefsForm" #f="form" (ng-submit)="onSubmit(f.value)" [hidden]="!initialized"
               class="form-horizontal">

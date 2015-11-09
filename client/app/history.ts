@@ -11,7 +11,7 @@ declare var jQuery:any;
 
 @View({
     template: `
-	<h1 class="page-title">My work history</h1>
+	<h2 class="page-title">My work history</h2>
         `
 })
 
