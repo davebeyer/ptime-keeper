@@ -6,7 +6,7 @@ import {CanReuse, ComponentInstruction} from 'angular2/router';
 declare var jQuery:any;
 
 @Component({
-    selector: 'history-block'
+    selector: 'review-block'
 })
 
 @View({
@@ -15,10 +15,10 @@ declare var jQuery:any;
         `
 })
 
-export class History implements CanReuse {
+export class Review implements CanReuse {
 
     constructor() {
-        console.log("history.ts: in constructor")
+        console.log("review.ts: in constructor")
     }
 
     canReuse(next: ComponentInstruction, prev: ComponentInstruction) {

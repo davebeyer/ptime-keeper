@@ -16,7 +16,7 @@ import {Preferences}     from './preferences';
 
 import {Plan}            from './plan';
 import {Work}            from './work';
-import {History}         from './history';
+import {Review}         from './review';
 
 import {UserService}     from '../services/user';
 import {FirebaseService} from '../services/firebase';
@@ -47,7 +47,7 @@ declare var jQuery:any;
 @RouteConfig([
     { path: '/plan',    as: 'Plan',        component: Plan },
     { path: '/work',    as: 'Work',        component: Work },
-    { path: '/history', as: 'History',     component: History },
+    { path: '/review',  as: 'Review',      component: Review },
     { path: '/signin',  as: 'SignIn',      component: SignIn },
     { path: '/prefs',   as: 'Preferences', component: Preferences }
 ])

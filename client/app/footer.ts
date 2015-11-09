@@ -24,8 +24,8 @@ import {UserService}       from '../services/user';
                 <li role="presentation" [class.active]="currentTab=='work'">   
                   <a href="#" [router-link]="['/Work']"><i class="fa fa-gears"></i> Work </a>    
                 </li>
-                <li role="presentation" [class.active]="currentTab=='history'">
-                  <a href="#" [router-link]="['/History']"><i class="fa fa-book"></i> History</a> 
+                <li role="presentation" [class.active]="currentTab=='review'">
+                  <a href="#" [router-link]="['/Review']"><i class="fa fa-book"></i> Review</a> 
                 </li>
               </ul>
             </div>
