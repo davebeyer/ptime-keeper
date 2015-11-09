@@ -37,10 +37,10 @@ export class UserService {
             _this.updateUserIdData(authData);
         });
 
-	// ///////////////////////
-	// Fake data for testing
-	// this.setupDummyUser();
-	// ///////////////////////
+        // ///////////////////////
+        // Fake data for testing
+        // this.setupDummyUser();
+        // ///////////////////////
     }
 
     login(provider) {
@@ -150,7 +150,7 @@ export class UserService {
         });
     }
 
-    updateUserData(path, data) {
+    updateUserData(data : any, path? : string) {
         var _this = this;
 
         return new Promise(function(resolve, reject) {
@@ -159,24 +159,58 @@ export class UserService {
                 reject("No signed in user, so unable to update user data!");
             }
 
-            var dataRef = _this.fBase.fbRef.child('userData').child(userId.toString()).child(path);
+            var dataRef;
+            if (path) {
+                dataRef = _this.fBase.fbRef.child('userData').child(userId.toString()).child(path);
+            } else {
+                dataRef = _this.fBase.fbRef.child('userData').child(userId.toString());
+            }
 
             dataRef.update(data, function() {
-		resolve();
+                resolve();
             });
         });
     }
 
-    getUserData(path) {
+    getUserActivitiesForPlan(planId) {
         var _this = this;
+        var fbRef = this.fBase.fbRef;
 
         return new Promise(function(resolve, reject) {
             var userId = _this.userId;
             if (!userId) {
+                reject("No signed in user, so unable to get user activities!");
+            }
+
+            var actPath  = 'userData/' + userId + '/activities';
+            var planPath = 'plans/' + planId;
+
+            // Notice that this skips over activity id keys, and be sure to include equalTo()
+            fbRef.child(actPath).orderByChild(planPath).equalTo('1').once('value', function(data) {
+                resolve(data.val());  // may be null;
+            });
+        });
+    }
+
+    getUserData(path : string, options? : any) {
+        if (!options) { options = {}; }
+
+        var _this = this;
+
+        return new Promise(function(resolve, reject) {
+            var userId = _this.userId;
+            var fbRef  = _this.fBase.fbRef;
+            var dataRef;
+
+            if (!userId) {
                 resolve(null);
             }
 
-            var dataRef = _this.fBase.fbRef.child('userData').child(userId.toString()).child(path);
+            if (options.limitToLast) {
+                dataRef = fbRef.child('userData').child(userId.toString()).child(path).limitToLast(1);
+            } else {
+                dataRef = fbRef.child('userData').child(userId.toString()).child(path);
+            }
 
             dataRef.once('value', function(data) {
                 resolve(data.val());

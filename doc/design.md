@@ -22,7 +22,7 @@ Saves data in the cloud, but also works offline
 * When renaming an activity category, asks whether this is "new" or just a renaming
   of an existing activity (in which case, tracking history will continue)
 
-## Daily session:
+## Plan:
 
 * Plan activities and estimates in terms of Pomodoros
 * Each activity gets:
@@ -37,18 +37,17 @@ Saves data in the cloud, but also works offline
 ## Work:
 
 * Activities are listed, select which one to work on
-* Click "Start/Resume" Activity, which starts session
+* Click "Start/Resume" Activity, which starts work period
 * At end of Pomodoro, alarm sounds, start break, alarm ends break
 * Can "Pause" timer (pauses also tracked)
-* End Session when done
 
-## Session Display Modes
+## Display Modes
 
 * Working:
   *  Timer showing countdown time to next break (or negative time if past break)
   *  Current Activity shown with:
       * Activity category (colored) and description
-      * Estimated Pomodoros for this session
+      * Estimated Pomodoros for this activity
       * Actual Pomodoros so far
   * Buttons for:
       * Take Break (button gets big if timer is negative)
@@ -65,7 +64,7 @@ Saves data in the cloud, but also works offline
     * Current activity expands (as if clicked) to pick next activity (if pick
       a "finished" activity, then reopen it as not yet finished)
 
-  * For all, gears icon to edit today's session or categories (or history?)
+  * For all, gears icon to edit preferences or ... 
 
 ## History:
 * Estimates vs Actuals, Work time vs Pauses
@@ -77,50 +76,51 @@ Saves data in the cloud, but also works offline
 
 * Defaults
     * pomodoro_mins 
-    * long_break
-    * short_break
+    * longBreak_mins
+    * shortBreak_mins
 
 * UserIdenties
    * google 
        * google_uid
-           * user_id
+           * userId
    * facebook
        * facebookuid
-           * user_id
+           * userId
    * local
-       * user_id
+       * userId
            * provider_uids (list)
 
 * UserData
-    * user_id(key) - auto assigned
-    * created_dt
+    * userId - auto assigned
+        * created
 
-    * Categories
-        * category_name(key)
-        * category_color
-        * created_dt
+        * categories
+            * id - derived from name
+                * created
+                * name
+                * color
 
-    * Sessions
-        * session_id(key) = "session-" + <datetime>
-        * created_dt
+        * plans
+            * id  <datetime>  [limitToLast() to get current]
+                * created
+                * name - default to formatted date & time
+                * activities 
+                      * activityIds - bidirectional links ("denormalized data")
 
-        * Activities list
-            * activity_id(key)  auto assigned list key
-            * category_name
-            * details
-            * estimate_poms (supports fractions, to 1/4ths)
-            * actual_poms (convenience, computed from Events)
-            * created_dt
-            * started_dt  (convenience, computed from Events)
-            * finished_dt (ditto)
+        * activities
+            * id  <datetime>
+                * category : <categoryId>
+                * created  : <datetime>
+                * description  : <string>
+                * estimate_poms : <number>  (supports fractions, to 1/4ths)
+                * plans
+                    * planIds - bidirectional links ("denormalized data")
+                                [equalTo(<planId>) to get activities for a given plan]
+            * events
+                * created
+                * eventType (Start, Resume, Progress, Break, Complete)
 
-    * Events
-        * event_dt
-        * event_type (Start, Resume, Progress, Break, Complete)
-        * session_id
-        * activity_id
-
-    * Preferences
-        * pomodoro_mins
-        * short_break
-        * long_break 
+        * Preferences
+            * work_mins
+            * shortBreak_mins
+            * longBreak_mins

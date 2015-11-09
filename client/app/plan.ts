@@ -22,26 +22,45 @@ var NullCategory = {name : '', color : 'black'};
     directives: [Typeahead, FORM_DIRECTIVES, NgIf, NgFor],
 
     styles: [
-	".form-wrapper      {margin-left: 20px;}",
-	".new-activity-form {border: 3px solid white; padding: 10px}"
+        ".wrapper           {margin-left: 20px;}",
+        ".new-activity-form {border: 4px solid white; padding: 10px}",
+        ".activity-entry    {border-left: 8px solid transparent; margin: 0 0 0 3px}",
+        "#new-plan-wrapper  {margin: 30px 10px 0 5px;}"
     ],
 
     template: `
-        <h1 class="page-title">My plan for today</h1>
 
-        <div  [hidden]="(viewMode != 'selectCat') || !categories.length" class="row">
-          <typeahead class="col-xs-8" placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
-          </typeahead>
-          <button (click)="createNewCategory($event)" class="col-xs-3 btn btn-default">Create new</button>
+        <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length">
+          <h1 class="page-title">Current plan</h1>
+          <div class="row activity-entry" 
+              *ng-for="#act of currentActivities" 
+              [style.border-left-color]="categoryColor(act.category)">
+            <div class="col-xs-3">{{categoryName(act.category)}}</div>
+            <div class="col-xs-5">{{act.description}}</div>
+            <div class="col-xs-4">
+              <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
+            </div>
+          </div>
+        </div>
+
+        <h1 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h1>
+
+        <div  [hidden]="(viewMode != 'selectCat') || !categories.length">
+          <h3> New activity </h3>
+          <div class="wrapper row">
+            <typeahead class="col-xs-7" placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
+            </typeahead>
+            <button (click)="createNewCategory($event)" class="col-xs-4 btn btn-primary">New category</button>
+          </div>
         </div>
 
         <div  [hidden]="(viewMode != 'selectCat') || categories.length" class="row">
-          <button (click)="createNewCategory($event)" class="col-xs-10 col-xs-offset-1 btn btn-default">Create your first work category</button>
+          <button (click)="createNewCategory($event)" class="col-xs-10 col-xs-offset-1 btn btn-primary">Create your first work category</button>
         </div>
 
-        <div  [hidden]="(viewMode != 'newCat')" class="form-wrapper">
+        <div  [hidden]="(viewMode != 'newCat')">
           <h3> Create a new work category </h3>
-          <form [ng-form-model]="newCatForm" #fcat="form" (ng-submit)="addCategory(fcat.value)" class="form-horizontal">
+          <form [ng-form-model]="newCatForm" #fcat="form" (ng-submit)="addCategory(fcat.value)" class="form-horizontal wrapper">
 
             <div class="form-group" [class.has-error]="!catname.valid">
               <div class="col-xs-7">
@@ -65,15 +84,15 @@ var NullCategory = {name : '', color : 'black'};
               <label  class="col-xs-5">Color</label>
             </div>
 
-            <button type="submit" class="btn btn-default" [disabled]="!fcat.valid">Save</button>
+            <button type="submit" class="btn btn-primary" [disabled]="!fcat.valid">Save</button>
             <button (click)="cancelNewCategory($event)" class="btn btn-default">Cancel</button>
           </form>
         </div>
 
-        <div  [hidden]="viewMode != 'newWork'" class="form-wrapper">
+        <div  [hidden]="viewMode != 'newWork'">
           <h3> New activity details </h3>
           <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
-                class="form-horizontal new-activity-form" [style.border-color]="selectedCategory.color">
+                class="wrapper form-horizontal new-activity-form" [style.border-color]="selectedCategory.color">
 
             <div class="form-group">
               <h4 class="category-title col-xs-5">
@@ -82,7 +101,8 @@ var NullCategory = {name : '', color : 'black'};
 
               <div class="col-xs-6">
                 <select class="form-control" ng-control="poms">
-                  <option *ng-for="#opt of pomodoroOpts" value="{{opt.value}}">{{opt.text}}</option>
+                  <option value="1">1 pomodoro</option>
+                  <option *ng-for="#i of range(7)" value="{{i+1}}">{{i+1}} pomodoros</option>
                 </select>
               </div>
             </div>
@@ -93,21 +113,30 @@ var NullCategory = {name : '', color : 'black'};
               </div>
             </div>
 
-            <button type="submit" class="btn btn-default" [disabled]="!fwork.valid">Save</button>
+            <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid">Save</button>
             <button (click)="cancelNewActivity($event)" class="btn btn-default">Cancel</button>
           </form>
         </div>
 
-        `
+        <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length" class="row" id="new-plan-wrapper">
+          <button (click)="startNewPlan($event)" class="col-xs-12 btn btn-danger">Start an entirely new plan</button>
+        </div>
 
+        <div [hidden]="viewMode != 'confirmOverlay'">
+          <h2>{{confirmTitle}}</h2>
+          <h4 style="margin: 15px 0 30px 0">{{confirmMessage}}</h4>
+          <button (click)="confirmYes($event)" class="btn btn-primary">Confirm</button>
+          <button (click)="confirmNo($event)" class="btn btn-default">Cancel</button>
+        </div>
+        `
 })
 
 export class Plan implements CanReuse {
     categories       : Array<any>;
+    categoryDict     : any;
     selectedCategory : any;
 
     categoryColors   : Array<string>;
-    pomodoroOpts     : Array<any>;
 
     viewMode         : string;
 
@@ -118,6 +147,12 @@ export class Plan implements CanReuse {
     newCatForm       : ControlGroup;
     newActForm       : ControlGroup;
 
+    currentPlan      : any;
+    currentActivities : Array<any>
+
+    confirmTitle     : string;
+    confirmMessage   : string;
+
     constructor(userServ : UserService, fb : FormBuilder, saveMsg : SaveMsg, fBase : FirebaseService) {
         console.log("plan.ts: in constructor")
 
@@ -126,10 +161,12 @@ export class Plan implements CanReuse {
         this.saveMsg  = saveMsg;
 
         this.categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
-        this.pomodoroOpts   = [{value : '1', text : '1 pomodoro'}];
-        for (var i = 2; i <= 10; i++) {
-            this.pomodoroOpts.push({value : i.toString(), text : i + " pomodoros"});
-        }
+
+        this.currentPlan       = null;
+        this.currentActivities = [];
+
+        this.confirmTitle      = '';
+        this.confirmMessage    = '';
 
         this.newCatForm = fb.group({
             'name'  : ['', this.uniqueCategory.bind(this)],
@@ -143,15 +180,36 @@ export class Plan implements CanReuse {
     }
 
     onInit() {
-        this.viewMode = 'selectCat';
+        this.viewMode = 'initializing';
         this.categories       = [];
+        this.categoryDict     = {};
+
         this.selectedCategory = NullCategory;
         this.getCategories();
+        this.getCurrentPlan();
     }
 
     //
     // Work category handling
     //
+
+    range(num) {
+        var res = [];
+        for (var i=1; i<=num; i++) {
+            res.push(i);
+        }
+        return res;
+    }
+
+    categoryName(catId) {
+        var catInfo = this.categoryDict[catId];
+        return catInfo ? catInfo.name : catId;
+    }
+
+    categoryColor(catId) {
+        var catInfo = this.categoryDict[catId];
+        return catInfo ? catInfo.color : 'black';
+    }
 
     createNewCategory($event) {
         $event.preventDefault();
@@ -210,12 +268,11 @@ export class Plan implements CanReuse {
 
         console.log("Adding category", newCat);
 
-        this.userServ.updateUserData('categories', newCat).then(function() {
+        this.userServ.updateUserData(newCat, 'categories').then(function() {
             console.log("Successfully added work category");
 
             // Add category to our list
-            catEntry['id'] = id;
-            _this.categories.push(catEntry);
+            _this.trackCategory(id, catEntry);
 
             // Clear out the category name
             _this.newCatForm.controls['name']['updateValue']('');
@@ -257,31 +314,83 @@ export class Plan implements CanReuse {
         return null;  // Valid
     }
 
-
     getCategories() {
         var _this = this;
 
-        this.categories = [];
+        this.categories   = [];
+        this.categoryDict = {};
 
         this.userServ.getUserData('categories').then(function(value) {
             if (value) {
-                var category;
                 var keys = Object.keys(value);
                 for (var i = 0; i < keys.length; i++) {
-                    category = value[keys[i]];
-                    _this.categories.push({id      : keys[i],
-                                           color   : category.color,
-                                           created : category.created,
-                                           name    : category.name});
+                    _this.trackCategory(keys[i], value[keys[i]]);
                 }
                 _this.categories.sort();
+            }
+            _this.viewMode = 'selectCat';
+        });
+    }
+
+    trackCategory(id, info) {
+        info['id'] = id;
+        this.categories.push(info);
+        this.categoryDict[id] = info;
+    }
+
+    //
+    // Handling for this plan
+    //
+
+    getCurrentPlan() {
+        var _this = this;
+
+        this.userServ.getUserData('plans', {limitToLast : true}).then(function(value) {
+
+            if (value) {
+                var planId = Object.keys(value)[0];  // should only be one key
+
+                _this.currentPlan = value[planId];
+                _this.currentPlan['created'] = planId     // convenience
+
+                // NOTE: Alternatively could iterate to get activities listed in 
+                //       currentPlan.activities.
+
+                _this.userServ.getUserActivitiesForPlan(planId).then(function(value) {
+                    if (value) {
+                        _this.currentActivities = [];
+
+                        var activity;
+                        var ids = Object.keys(value);
+
+                        for (var i=0; i < ids.length; i++) {
+                            _this.trackActivity(value[ids[i]]);
+                        }
+                        _this.currentActivities.sort(_this.sortActivities.bind(_this));
+                        console.log("getCurrentActivities: current activities: ", _this.currentActivities);
+                    }
+                });
             }
         });
     }
 
-    //
-    // Handle planning work activities for this session
-    //
+    trackActivity(info) {
+        this.currentActivities.push(info);        
+    }
+
+    sortActivities(a, b) {
+        var name1 = this.categoryName(a.category);
+        var name2 = this.categoryName(b.category);
+        if (name1 < name2) {
+            return -1;
+        } else if (name2 < name1) {
+            return 1;
+        } else if (a.created < b.created) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
 
     selectCategory(item) {
         console.log("plan.ts: Select category", item);
@@ -296,7 +405,75 @@ export class Plan implements CanReuse {
 
     addActivity(formValue) {
         // descr & poms
+        var _this = this;
+
         console.log("Adding activity ", formValue);
+        this.viewMode = 'selectCat';
+
+        var created = this.fBase.dateToKey(new Date());
+
+        var newActivity = {
+            category       : this.selectedCategory.id,
+            created        : created,
+            description    : formValue.descr,
+            estimated_poms : formValue.poms
+        }
+
+        if (this.currentPlan == null) {
+            this.currentPlan = {created : created,
+                                name    : created};  // later, allow possibility of naming plans
+        } 
+
+        if (!this.currentPlan['activities']) {
+            this.currentPlan['activities'] = {};
+        }
+        this.currentPlan['activities'][created] = "1"
+
+        var planId = this.currentPlan['created'];
+
+        newActivity['plans'] = {};
+        newActivity['plans'][planId] = "1";
+
+        var entry = {};
+        entry[created] = newActivity;
+
+        //
+        // For simultaneous, multi-location updates
+        // See: https://www.firebase.com/blog/2015-09-24-atomic-writes-and-more.html
+        //
+        var userUpdate = {};
+        userUpdate["activities/" + created] = newActivity;
+        userUpdate["plans/" + planId]       = this.currentPlan;
+
+        // this.userServ.updateUserData(entry, 'activities').then(function() {
+        this.userServ.updateUserData(userUpdate).then(function() {
+            _this.saveMsg.flashMsg();
+            _this.trackActivity(newActivity);
+            _this.currentActivities.sort(_this.sortActivities.bind(_this));
+            console.log("Successfully added activity ", entry);
+        });
+    }
+
+    //
+    // Confirmation
+    //
+
+    startNewPlan() {
+        // this.confirmId      = 'start-new-plan';
+        this.confirmTitle   = "Confirm Starting New Plan";
+        this.confirmMessage = "Please confirm that you'd like to start with a completely new (initially empty) plan.";
+        this.viewMode = 'confirmOverlay';
+    }
+
+    confirmYes() {
+        // TODO: currently, only one type of confirmation
+        this.currentPlan       = null;
+        this.currentActivities = [];
+        this.viewMode = 'selectCat';
+    }
+
+    confirmNo() {
+        // TODO: currently, only one type of confirmation
         this.viewMode = 'selectCat';
     }
 

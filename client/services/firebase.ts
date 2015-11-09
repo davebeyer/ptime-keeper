@@ -62,13 +62,38 @@ export class FirebaseService {
         this.fbRef  = new Firebase('https://ptime-keeper.firebaseio.com');
     }
 
+
+    // Illegal chars for Firebase keys = ['.', '$', '#', '[', ']', '/']
+    // E.g, see: https://github.com/bendrucker/firebase-validate-key/blob/master/index.js
     stringToKey(value) {
         var result = value.replace(/[^a-zA-Z0-9_-]/g, '');
         return result;
     }
 
+    dateToKey(dt : Date) {
+	return dt.toISOString().replace('.', '_');
+    }
+
     initDB() {
         var _this = this;
+
+	////////////////////////////////////////////////////////////////////////////////////
+	//
+	// TESTING
+	//
+	/*
+	// Notice that this skips over category keys (e.g., 'art', 'math', etc.)
+        _this.fbRef.child('userData/101/categories').orderByChild('color').equalTo('orange').once('value', function(data) {
+	    console.log("TESTING ONE", data.val());
+	});
+
+	// Notice that this skips over activity id keys, and be sure to include equalTo()
+        _this.fbRef.child('userData/101/activities').orderByChild('plans/ghi').equalTo('1').once('value', function(data) {
+	    console.log("TESTING TWO", data.val());
+	});
+	*/
+	//
+	////////////////////////////////////////////////////////////////////////////////////
 
         return new Promise(function(resolve, reject) {
 
@@ -84,6 +109,7 @@ export class FirebaseService {
                 }
             });
         });
+
     }
 
     getUser(provider, providerUserId) {

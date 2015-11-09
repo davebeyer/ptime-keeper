@@ -18,27 +18,27 @@ import {isInteger}                        from '../public/js/validators';
     styles: ["form {margin-left: 20px;}"],
 
     template: `
-	<h1 class="page-title">Preferences</h1>
+        <h1 class="page-title">Preferences</h1>
 
         <form [ng-form-model]="prefsForm" #f="form" (ng-submit)="onSubmit(f.value)" [hidden]="!initialized"
-	      class="form-horizontal">
+              class="form-horizontal">
 
           <div class="form-group" [class.has-error]="!work.valid">
-	    <div class="col-xs-3">
+            <div class="col-xs-3">
               <input type="text" class="form-control" ng-control="work_mins" #work="form">
             </div>
             <label class="col-xs-9">Work time (mins)</label>
           </div>
           <div class="row">
-	    <div class="col-xs-12">
+            <div class="col-xs-12">
               <!-- Demonstrate how to give specific errors -->
               <div *ng-if="work.control.hasError('required')" class="bg-warning">Required field.</div>
               <div *ng-if="work.control.hasError('integer')"  class="bg-warning">Must be an integer number of minutes.</div>
-	    </div>
+            </div>
           </div>
 
           <div class="form-group" [class.has-error]="!shortbreak.valid">
-	    <div class="col-xs-3">
+            <div class="col-xs-3">
               <input type="text" class="form-control" ng-control="shortBreak_mins" #shortbreak="form">
             </div>
             <label  class="col-xs-9">Short break time (mins)</label>
@@ -48,7 +48,7 @@ import {isInteger}                        from '../public/js/validators';
           </div>
 
           <div class="form-group" [class.has-error]="!longbreak.valid">
-	    <div class="col-xs-3">
+            <div class="col-xs-3">
               <input type="text" class="form-control" ng-control="longBreak_mins" #longbreak="form">
             </div>
             <label class="col-xs-9">Long break time (mins)</label>
@@ -57,7 +57,7 @@ import {isInteger}                        from '../public/js/validators';
             <div [hidden]="longbreak.valid"  class="col-xs-12 bg-warning">Must be an integer number of minutes</div>
           </div>
 
-          <button type="submit" class="btn btn-default" [disabled]="!f.valid || !f.dirty">Save</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!f.valid || !f.dirty">Save</button>
         </form>
         `
 })
@@ -72,16 +72,16 @@ export class Preferences implements CanReuse {
 
     constructor(settings : SettingsService, fb : FormBuilder, saveMsg : SaveMsg) {
         this.settings     = settings;
-	this.settingNames = ['work_mins', 'longBreak_mins', 'shortBreak_mins'];
+        this.settingNames = ['work_mins', 'longBreak_mins', 'shortBreak_mins'];
 
         this.prefsForm = fb.group({
-	    'work_mins'       : ['', Validators.compose([Validators.required, isInteger])],
-	    'shortBreak_mins' : ['', Validators.compose([Validators.required, isInteger])],
-	    'longBreak_mins'  : ['', Validators.compose([Validators.required, isInteger])] 
-	});
+            'work_mins'       : ['', Validators.compose([Validators.required, isInteger])],
+            'shortBreak_mins' : ['', Validators.compose([Validators.required, isInteger])],
+            'longBreak_mins'  : ['', Validators.compose([Validators.required, isInteger])] 
+        });
 
-	this.initialized = false;
-	this.saveMsg     = saveMsg;
+        this.initialized = false;
+        this.saveMsg     = saveMsg;
 
         console.log("preferences.ts: in constructor")
     }
@@ -94,20 +94,20 @@ export class Preferences implements CanReuse {
         var _this = this;
 
         this.settings.getAllSettings().then(function(value) {
-	    var name;
+            var name;
 
-	    for (var i = 0; i < _this.settingNames.length; i++) {
-		// updateValue method inherited from AbstactControl
-		// (Typesript compiler doesn't recognize it as a property)
-		name = _this.settingNames[i];
-		_this.prefsForm.controls[name]['updateValue'](value[name].toString());
+            for (var i = 0; i < _this.settingNames.length; i++) {
+                // updateValue method inherited from AbstactControl
+                // (Typesript compiler doesn't recognize it as a property)
+                name = _this.settingNames[i];
+                _this.prefsForm.controls[name]['updateValue'](value[name].toString());
 
-		// Don't change dirty, this is initial state
-		// _this.prefsForm.controls[name]['markAsDirty']();
-	    }
+                // Don't change dirty, this is initial state
+                // _this.prefsForm.controls[name]['markAsDirty']();
+            }
 
 
-	    _this.initialized = true;
+            _this.initialized = true;
         });
 
         // this.settings.getSetting('shortBreak_mins').then(function(value) {
@@ -120,21 +120,21 @@ export class Preferences implements CanReuse {
         var _this = this;
 
         // Note that this Save button is only visible if the input 
-	// is "dirty" (presumably modified) and "valid"
+        // is "dirty" (presumably modified) and "valid"
 
         console.log("Saving values ", value);
 
-	var name;
-	var newSettings = {};
+        var name;
+        var newSettings = {};
 
-	for (var i = 0; i < _this.settingNames.length; i++) {
-	    name = _this.settingNames[i];
-	    newSettings[name] = this.prefsForm.controls[name].value;
-	}
+        for (var i = 0; i < _this.settingNames.length; i++) {
+            name = _this.settingNames[i];
+            newSettings[name] = this.prefsForm.controls[name].value;
+        }
 
         this.settings.setUserSettings(newSettings).then(function() {
             console.log("Successfully updated settings");
-	    _this.saveMsg.flashMsg();
+            _this.saveMsg.flashMsg();
         });
     }
 
