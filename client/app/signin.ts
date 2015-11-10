@@ -44,7 +44,10 @@ import {UserService} from '../services/user';
               </tr>
               <tr>
                 <td colspan="2">
-                  <h4 style="margin-top:40px">Click on a tab below to get started!</h4>
+                  <h4 style="margin-top:40px">
+                    Click on a tab below to get started!<br/>
+	            (Hint, start with "Plan" <i class="fa fa-smile-o"></i>)
+                  </h4>
                 </td>
               </tr>
             </table>

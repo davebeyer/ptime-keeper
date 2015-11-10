@@ -49,7 +49,7 @@ var NullCategory = {name : '', color : 'black'};
 
         <h2 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h2>
 
-        <div  [hidden]="makeChanges" class="row">
+        <div  [hidden]="makeChanges || !categories.length" class="row">
           <button (click)="makeChanges = true" class="col-xs-10 col-xs-offset-1 btn btn-primary">Make changes</button>
         </div>
 
