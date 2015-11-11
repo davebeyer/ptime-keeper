@@ -25,11 +25,11 @@ var NullCategory = {name : '', color : 'black'};
     //    "#new-plan-wrapper  {margin: 30px 10px 0 5px;}"
 
     styles: [
-        ".activity-entry       {border-left: 8px solid transparent; margin: 2px 0 0 0}",
+        ".activity-entry       {border-left: 8px solid transparent; margin: 2px 0; padding: 2px 0;}",
         ".tight                {padding: 0 5px;}",
-        ".new-activity-wrapper {border-left: 8px solid white;}",
         ".new-activity-form    {margin-left: 20px; width:calc(100% - 20px)}",
-	".new-section          {margin-top: 30px;}"
+        ".activity-form-wrapper{border-left: 8px solid white;}",
+        ".new-section          {margin-top: 30px;}"
     ],
 
     template: `
@@ -50,46 +50,50 @@ var NullCategory = {name : '', color : 'black'};
             Add an activity 
           </h2>
 
-          <div class="new-activity-wrapper" [style.border-color]="selectedCategory.color">
+          <div class="activity-form-wrapper" [style.border-color]="selectedCategory.color">
           <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
                 class="wrapper form-horizontal new-activity-form">
 
-            <div class="form-group">
-              <div class="col-xs-3 tight">
-                <label>Category</label>
-                <select class="form-control" ng-control="cat">
-                  <option *ng-for="#c of categories" value="{{c.id}}">{{c.name}}</option>
-                </select>
-              </div>
-
-              <div class="col-xs-5 tight">
-	        <label>Description</label>
-                <input placeholder="(optional)"type="text" class="form-control" ng-control="descr">
-              </div>
-
-              <div class="col-xs-2 tight">
-                <label><img src="/img/tomato-tn.png"/>&#39;s </label>
-                <select class="form-control" ng-control="poms">
-                  <option *ng-for="#i of range(8)" value="{{i}}"> &nbsp;{{i}}&nbsp; </option>
-                </select>
-              </div>
-
-              <div class="col-xs-1 tight">
-                <label>&nbsp; </label>
-                <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid"> + </button>
-              </div>
-
+            <div class="row">
+              <div class="col-xs-3 tight"><label>Category</label></div>
+              <div class="col-xs-5 tight"><label>Description</label></div>
+              <div class="col-xs-2 tight"><label><img src="/img/tomato-tn.png"/>&#39;s </label></div>
+              <div class="col-xs-1 tight"><label>&nbsp; </label></div>
             </div>
+
+              <div class="form-group">
+                <div class="col-xs-3 tight">
+                  <select class="form-control" ng-control="cat">
+                    <option *ng-for="#c of categories" value="{{c.id}}">{{c.name}}</option>
+                  </select>
+                </div>
+
+                <div class="col-xs-5 tight">
+                  <input placeholder="(optional)"type="text" class="form-control" ng-control="descr">
+                </div>
+
+                <div class="col-xs-2 tight">
+                  <select class="form-control" ng-control="poms">
+                    <option *ng-for="#i of range(8)" value="{{i}}"> &nbsp;{{i}}&nbsp; </option>
+                  </select>
+                </div>
+
+                <div class="col-xs-1 tight">
+                  <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid"> + </button>
+                </div>
+              </div>
+
           </form>
           </div>
-        </div>
 
-        <h2 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h2>
+        </div>
 
         <h2 class="new-section">
         </h2>
 
-        <div class="row">
+        <h2 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h2>
+
+        <div class="row" [hidden]="viewMode == 'confirmOverlay'">
           <div [hidden]="categories.length">
             <button  (click)="createNewCategory($event)" class="col-xs-12  btn btn-primary">
               Create your first work category
@@ -97,20 +101,20 @@ var NullCategory = {name : '', color : 'black'};
           </div>
 
           <div [hidden]="!categories.length">
-            <button (click)="createNewCategory($event)" class="col-xs-4 col-xs-offset-1  btn btn-primary">
+            <button (click)="createNewCategory($event)" class="col-xs-5 col-xs-offset-1  btn btn-primary">
               New category
             </button>
           </div>
 
           <div [hidden]="!categories.length || !currentActivities.length">
-            <button (click)="startNewPlan($event)" class="col-xs-6 col-xs-offset-1  btn btn-danger"> 
-              Start entirely new plan
+            <button (click)="startNewPlan($event)" class="col-xs-5 col-xs-offset-1  btn btn-danger"> 
+              Start a new plan
             </button>
           </div>
         </div>
 
         <div  [hidden]="viewMode != 'newCat'">
-          <h3> Create a new work category </h3>
+          <h2> Create a new work category </h2>
           <form [ng-form-model]="newCatForm" #fcat="form" (ng-submit)="addCategory(fcat.value)" class="form-horizontal wrapper">
 
             <div class="form-group" [class.has-error]="!catname.valid">
