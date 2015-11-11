@@ -14,6 +14,7 @@ import {UserService}       from '../services/user';
     directives: [RouterLink, NgClass, SaveMsg],
 
     template: `
+      <div class="container">
         <nav class="navbar navbar-default navbar-fixed-bottom">
           <div class="container">
             <div class="navbar-header"  [hidden]="!userServ.isLoggedIn">
@@ -33,6 +34,7 @@ import {UserService}       from '../services/user';
 
           <save-msg></save-msg>
         </nav>
+      </div>
 	`,
 
     styles: [

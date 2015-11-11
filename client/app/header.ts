@@ -13,6 +13,7 @@ import {UserService}       from '../services/user';
     directives: [RouterLink],
 
     template: `
+      <div class="container">
 	<nav class="navbar navbar-default navbar-fixed-top">
 	  <div class="container">
 	    <div class="row" style="padding-top: 8px">
@@ -36,6 +37,7 @@ import {UserService}       from '../services/user';
             </div>
 	  </div>
 	</nav>
+      </div>
         `
 })
 

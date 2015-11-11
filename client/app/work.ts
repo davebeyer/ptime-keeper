@@ -11,8 +11,9 @@ declare var jQuery:any;
 
 @View({
     template: `
-	<h2 class="page-title">Focus time!</h2>
-
+        <div class="container">
+          <h2 class="page-title">Focus time!</h2>
+        </div>
         `
 })
 

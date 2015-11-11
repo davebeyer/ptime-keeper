@@ -21,52 +21,95 @@ var NullCategory = {name : '', color : 'black'};
 @View({
     directives: [Typeahead, FORM_DIRECTIVES, NgIf, NgFor],
 
+    // ".wrapper           {margin-left: 20px;}",
+    //    "#new-plan-wrapper  {margin: 30px 10px 0 5px;}"
+
     styles: [
-        ".wrapper           {margin-left: 20px;}",
-        ".new-activity-form {border: 4px solid white; padding: 10px}",
-        ".activity-entry    {border-left: 8px solid transparent; margin: 2px 0 0 3px}",
-        "#new-plan-wrapper  {margin: 30px 10px 0 5px;}"
+        ".activity-entry       {border-left: 8px solid transparent; margin: 2px 0 0 0}",
+        ".tight                {padding: 0 5px;}",
+        ".new-activity-wrapper {border-left: 8px solid white;}",
+        ".new-activity-form    {margin-left: 20px; width:calc(100% - 20px)}",
+	".new-section          {margin-top: 30px;}"
     ],
 
     template: `
-
+      <div class="container">
         <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length">
           <h2 class="page-title">Current plan activities</h2>
           <div class="row activity-entry" 
               *ng-for="#act of currentActivities" 
               [style.border-left-color]="categoryColor(act.category)">
-            <div class="col-xs-3">{{categoryName(act.category)}}</div>
+            <div class="col-xs-4">{{categoryName(act.category)}}</div>
             <div class="col-xs-5">{{act.description}}</div>
-            <div class="col-xs-4">
+            <div class="col-xs-3">
               <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
             </div>
           </div>
 
-          <div class="row">
-            <hr class="col-xs-12" style="margin-bottom:0"/>
+          <h2 class="new-section">
+            Add an activity 
+          </h2>
+
+          <div class="new-activity-wrapper" [style.border-color]="selectedCategory.color">
+          <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
+                class="wrapper form-horizontal new-activity-form">
+
+            <div class="form-group">
+              <div class="col-xs-3 tight">
+                <label>Category</label>
+                <select class="form-control" ng-control="cat">
+                  <option *ng-for="#c of categories" value="{{c.id}}">{{c.name}}</option>
+                </select>
+              </div>
+
+              <div class="col-xs-5 tight">
+	        <label>Description</label>
+                <input placeholder="(optional)"type="text" class="form-control" ng-control="descr">
+              </div>
+
+              <div class="col-xs-2 tight">
+                <label><img src="/img/tomato-tn.png"/>&#39;s </label>
+                <select class="form-control" ng-control="poms">
+                  <option *ng-for="#i of range(8)" value="{{i}}"> &nbsp;{{i}}&nbsp; </option>
+                </select>
+              </div>
+
+              <div class="col-xs-1 tight">
+                <label>&nbsp; </label>
+                <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid"> + </button>
+              </div>
+
+            </div>
+          </form>
           </div>
         </div>
 
         <h2 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h2>
 
-        <div  [hidden]="makeChanges || !categories.length" class="row">
-          <button (click)="makeChanges = true" class="col-xs-10 col-xs-offset-1 btn btn-primary">Make changes</button>
-        </div>
+        <h2 class="new-section">
+        </h2>
 
-        <div  [hidden]="(viewMode != 'selectCat') || !categories.length || !makeChanges" class="wrapper">
-          <h3> Add a new activity </h3>
-          <div class="row">
-            <typeahead class="col-xs-7" placeholder="Select a work category" [options]="categories"  (select)="selectCategory($event, item)">
-            </typeahead>
-            <button (click)="createNewCategory($event)" class="col-xs-4 btn btn-primary">New category</button>
+        <div class="row">
+          <div [hidden]="categories.length">
+            <button  (click)="createNewCategory($event)" class="col-xs-12  btn btn-primary">
+              Create your first work category
+            </button>
+          </div>
+
+          <div [hidden]="!categories.length">
+            <button (click)="createNewCategory($event)" class="col-xs-4 col-xs-offset-1  btn btn-primary">
+              New category
+            </button>
+          </div>
+
+          <div [hidden]="!categories.length || !currentActivities.length">
+            <button (click)="startNewPlan($event)" class="col-xs-6 col-xs-offset-1  btn btn-danger"> 
+              Start entirely new plan
+            </button>
           </div>
         </div>
 
-        <div  [hidden]="(viewMode != 'selectCat') || categories.length" class="row">
-          <button (click)="createNewCategory($event)" class="col-xs-10 col-xs-offset-1 btn btn-primary">Create your first work category</button>
-        </div>
-
-        <div  [hidden]="(viewMode != 'newCat') || !makeChanges">
+        <div  [hidden]="viewMode != 'newCat'">
           <h3> Create a new work category </h3>
           <form [ng-form-model]="newCatForm" #fcat="form" (ng-submit)="addCategory(fcat.value)" class="form-horizontal wrapper">
 
@@ -97,45 +140,14 @@ var NullCategory = {name : '', color : 'black'};
           </form>
         </div>
 
-        <div  [hidden]="viewMode != 'newWork'">
-          <h3> New activity details </h3>
-          <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
-                class="wrapper form-horizontal new-activity-form" [style.border-color]="selectedCategory.color">
-
-            <div class="form-group">
-              <h4 class="category-title col-xs-5">
-                {{selectedCategory.name}}
-              </h4>
-
-              <div class="col-xs-6">
-                <select class="form-control" ng-control="poms">
-                  <option value="1">1 pomodoro</option>
-                  <option *ng-for="#i of range(7)" value="{{i+1}}">{{i+1}} pomodoros</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <div class="col-xs-11">
-                <input placeholder="Description (optional)"type="text" class="form-control" ng-control="descr">
-              </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid">Save</button>
-            <button (click)="cancelNewActivity($event)" class="btn btn-default">Cancel</button>
-          </form>
-        </div>
-
-        <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length  || !makeChanges" class="row" id="new-plan-wrapper">
-          <button (click)="startNewPlan($event)" class="col-xs-12 btn btn-danger">Start an entirely new plan</button>
-        </div>
-
         <div [hidden]="viewMode != 'confirmOverlay'">
           <h2>{{confirmTitle}}</h2>
           <h4 style="margin: 15px 0 30px 0">{{confirmMessage}}</h4>
           <button (click)="confirmYes($event)" class="btn btn-primary">Confirm</button>
           <button (click)="confirmNo($event)" class="btn btn-default">Cancel</button>
         </div>
+
+      </div>
         `
 })
 
@@ -147,7 +159,6 @@ export class Plan implements CanReuse {
     categoryColors   : Array<string>;
 
     viewMode         : string;
-    makeChanges      : boolean;
 
     userServ         : UserService;
     fBase            : FirebaseService;
@@ -162,12 +173,15 @@ export class Plan implements CanReuse {
     confirmTitle     : string;
     confirmMessage   : string;
 
+    fb               : FormBuilder;
+
     constructor(userServ : UserService, fb : FormBuilder, saveMsg : SaveMsg, fBase : FirebaseService) {
         console.log("plan.ts: in constructor")
 
         this.userServ = userServ;
         this.fBase    = fBase;
         this.saveMsg  = saveMsg;
+        this.fb       = fb;
 
         this.categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
 
@@ -177,12 +191,13 @@ export class Plan implements CanReuse {
         this.confirmTitle      = '';
         this.confirmMessage    = '';
 
-        this.newCatForm = fb.group({
+        this.newCatForm = this.fb.group({
             'name'  : ['', this.uniqueCategory.bind(this)],
             'color' : ['', Validators.required]
         });
 
-        this.newActForm = fb.group({
+        this.newActForm = this.fb.group({
+            'cat'    : [''],
             'descr'  : [''],
             'poms'   : ['2']
         });
@@ -190,7 +205,6 @@ export class Plan implements CanReuse {
 
     onInit() {
         this.viewMode         = 'initializing';
-	this.makeChanges      = false;
         this.categories       = [];
         this.categoryDict     = {};
 
@@ -258,6 +272,7 @@ export class Plan implements CanReuse {
 
         this.viewMode = 'newCat';
     }
+
     cancelNewCategory($event) {
         $event.preventDefault();
         this.viewMode = 'selectCat';
@@ -283,7 +298,7 @@ export class Plan implements CanReuse {
 
             // Add category to our list
             _this.trackCategory(id, catEntry);
-            _this.categories.sort();
+            _this.categories.sort(_this.sortCategories.bind(_this));
 
             // Clear out the category name
             _this.newCatForm.controls['name']['updateValue']('');
@@ -337,7 +352,12 @@ export class Plan implements CanReuse {
                 for (var i = 0; i < keys.length; i++) {
                     _this.trackCategory(keys[i], value[keys[i]]);
                 }
-                _this.categories.sort();
+                _this.categories.sort(_this.sortCategories.bind(_this));
+
+                _this.newActForm.controls['poms']['updateValue']('2');
+                if (_this.categories.length) { 
+                    _this.newActForm.controls['cat']['updateValue'](_this.categories[0].id);
+                }
             }
             _this.viewMode = 'selectCat';
         });
@@ -380,11 +400,6 @@ export class Plan implements CanReuse {
                         _this.currentActivities.sort(_this.sortActivities.bind(_this));
                         console.log("getCurrentActivities: current activities: ", _this.currentActivities);
                     }
-
-                    if (!_this.currentActivities.length) {
-                        // Enable change forms
-                        _this.makeChanges = true;
-                    }
                 });
             }
         });
@@ -392,6 +407,14 @@ export class Plan implements CanReuse {
 
     trackActivity(info) {
         this.currentActivities.push(info);        
+    }
+
+    sortCategories(a, b) {
+        if (a.name < b.name) {
+            return -1;
+        } else {
+            return 1;
+        }
     }
 
     sortActivities(a, b) {

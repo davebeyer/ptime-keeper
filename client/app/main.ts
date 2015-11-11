@@ -36,9 +36,7 @@ declare var jQuery:any;
     template: `
         <header></header>
 
-        <div class="container">
-          <router-outlet></router-outlet>
-        </div>
+        <router-outlet></router-outlet>
 
         <footer></footer>
         `

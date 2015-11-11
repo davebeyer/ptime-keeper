@@ -18,6 +18,7 @@ import {isInteger}                        from '../public/js/validators';
     styles: ["form {margin-left: 20px;}"],
 
     template: `
+      <div class="container">
         <h2 class="page-title">Preferences</h2>
 
         <form [ng-form-model]="prefsForm" #f="form" (ng-submit)="onSubmit(f.value)" [hidden]="!initialized"
@@ -59,7 +60,8 @@ import {isInteger}                        from '../public/js/validators';
 
           <button type="submit" class="btn btn-primary" [disabled]="!f.valid || !f.dirty">Save</button>
         </form>
-        `
+      </div>
+      `
 })
 
 

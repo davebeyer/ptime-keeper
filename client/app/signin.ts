@@ -10,6 +10,7 @@ import {UserService} from '../services/user';
 
 @View({
     template: `
+      <div class="container">
         <div class="text-center" style="width:100%">
 
           <div [hidden]="userServ.isLoggedIn">
@@ -53,6 +54,7 @@ import {UserService} from '../services/user';
             </table>
           </div>
         </div>
+      </div>
       `
 })
 
