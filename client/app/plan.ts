@@ -27,7 +27,7 @@ var NullCategory = {name : '', color : 'black'};
     styles: [
         ".activity-entry       {border-left: 8px solid transparent; margin: 2px 0; padding: 2px 0;}",
         ".tight                {padding: 0 5px;}",
-        ".new-activity-form    {margin-left: 20px; width:calc(100% - 20px)}",
+        ".form-indent          {margin-left: 20px; width:calc(100% - 20px)}",
         ".activity-form-wrapper{border-left: 8px solid white;}",
         ".new-section          {margin-top: 30px;}"
     ],
@@ -50,16 +50,16 @@ var NullCategory = {name : '', color : 'black'};
             Add an activity 
           </h2>
 
-          <div class="activity-form-wrapper" [style.border-color]="selectedCategory.color">
-          <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
-                class="wrapper form-horizontal new-activity-form">
+          <div class="row form-indent">
+            <div class="col-xs-3 tight"><label>Category</label></div>
+            <div class="col-xs-5 tight"><label>Description</label></div>
+            <div class="col-xs-2 tight"><label><img src="/img/tomato-tn.png"/>&#39;s </label></div>
+            <div class="col-xs-1 tight"><label>&nbsp; </label></div>
+          </div>
 
-            <div class="row">
-              <div class="col-xs-3 tight"><label>Category</label></div>
-              <div class="col-xs-5 tight"><label>Description</label></div>
-              <div class="col-xs-2 tight"><label><img src="/img/tomato-tn.png"/>&#39;s </label></div>
-              <div class="col-xs-1 tight"><label>&nbsp; </label></div>
-            </div>
+          <div class="activity-form-wrapper" [style.border-color]="selectedCategory.color">
+            <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
+                  class="wrapper form-horizontal form-indent">
 
               <div class="form-group">
                 <div class="col-xs-3 tight">
@@ -83,7 +83,7 @@ var NullCategory = {name : '', color : 'black'};
                 </div>
               </div>
 
-          </form>
+            </form>
           </div>
 
         </div>
