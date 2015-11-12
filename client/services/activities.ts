@@ -7,15 +7,21 @@ import {FirebaseService} from './firebase';
 import {UserService}     from './user';
 
 export class ActivitiesService {
-    fBase    : FirebaseService;
-    userServ : UserService;
+    fBase            : FirebaseService;
+    userServ         : UserService;
+
+    plan             : any;
+    activities       : Array<any>
 
     constructor(@Inject(FirebaseService) fBase    : FirebaseService,
 		@Inject(UserService)     userServ : UserService) {
         console.log("activities.ts: in ActivitiesService constructor")
 
-	this.userServ = userServ;
-	this.fBase    = fBase;
+	this.userServ   = userServ;
+	this.fBase      = fBase;
+
+	this.plan       = null;
+	this.activities = [];
     }
 
     onInit() {

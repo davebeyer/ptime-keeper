@@ -201,9 +201,6 @@ export class Plan implements CanReuse {
     newCatForm       : ControlGroup;
     newActForm       : ControlGroup;
 
-    currentPlan      : any;
-    activities       : Array<any>
-
     planDate         : string;
     planTime         : string;
 
@@ -228,7 +225,7 @@ export class Plan implements CanReuse {
 
         this.categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
 
-        this.currentPlan       = null;
+        this.plan              = null;
         this.activities        = [];
 
         this.planDate          = '';
@@ -281,6 +278,24 @@ export class Plan implements CanReuse {
 
         this.getCategories();
         this.getCurrentPlan();
+    }
+
+    //
+    // Getters and Setters to ease transitioning to ActivitiesService
+    //
+
+    get plan() {
+	return this.actServ.plan;
+    }
+    set plan(newPlan : any) {
+	this.actServ.plan = newPlan;
+    }
+
+    get activities() {
+	return this.actServ.activities;
+    }
+    set activities(newAct : Array<any>) {
+	this.actServ.activities = newAct;
     }
 
     //
@@ -488,8 +503,8 @@ export class Plan implements CanReuse {
     initCurrentPlan(plan, planId) {
 	var _this = this;
 
-        this.currentPlan = plan
-        this.currentPlan['created'] = planId     // convenience
+        this.plan            = plan
+        this.plan['created'] = planId     // convenience
 
         var parseableDT  = planId.replace('_', '.');
         var momDT        = moment(parseableDT);
@@ -514,7 +529,7 @@ export class Plan implements CanReuse {
 
         this.userServ.getUserData('plans', {limitToLast : true}).then(function(value) {
             if (!value) {
-                _this.currentPlan = null;
+                _this.plan        = null;
                 _this.activities  = [];
             } else {
                 var planId = Object.keys(value)[0];  // should only be one key
@@ -522,7 +537,7 @@ export class Plan implements CanReuse {
                 _this.initCurrentPlan(value[planId], planId);
 
                 // NOTE: Alternatively could iterate to get activities listed in 
-                //       currentPlan.activities.
+                //       plan.activities.
 
                 _this.userServ.getUserActivitiesForPlan(planId).then(function(value) {
                     if (value) {
@@ -543,7 +558,7 @@ export class Plan implements CanReuse {
                         // Could also consider deleting this plan, but leave it in place
                         // for now in case something weird is happening with DB.
 
-                        _this.currentPlan = null;
+                        _this.plan = null;
                     }
                 });
             }
@@ -583,7 +598,7 @@ export class Plan implements CanReuse {
 
     delActivity($event, activity) {
         var _this      = this;
-        var planId     = this.currentPlan['created'];
+        var planId     = this.plan['created'];
         var activityId = activity['created'];
 
         console.log("Deleting activity", activity, planId);
@@ -624,19 +639,19 @@ export class Plan implements CanReuse {
             estimated_poms : formValue.poms
         }
 
-        if (this.currentPlan == null) {
+        if (this.plan == null) {
             // later, allow possibility of naming plans
             this.initCurrentPlan({name : created}, created);
         } 
 
-        if (!this.currentPlan['activities']) {
-            this.currentPlan['activities'] = {};
+        if (!this.plan['activities']) {
+            this.plan['activities'] = {};
         }
 
 	// created is the activityId of this new activity
-        this.currentPlan['activities'][created] = "1"
+        this.plan['activities'][created] = "1"
 
-        var planId = this.currentPlan['created'];
+        var planId = this.plan['created'];
 
         newActivity['plans'] = {};
         newActivity['plans'][planId] = "1";
@@ -650,7 +665,7 @@ export class Plan implements CanReuse {
         //
         var userUpdate = {};
         userUpdate["activities/" + created] = newActivity;
-        userUpdate["plans/" + planId]       = this.currentPlan;
+        userUpdate["plans/" + planId]       = this.plan;
 
         // this.userServ.updateUserData(entry, 'activities').then(function() {
         this.userServ.updateUserData(userUpdate).then(function() {
@@ -676,7 +691,7 @@ export class Plan implements CanReuse {
 
     confirmYes() {
         // TODO: currently, only one type of confirmation
-        this.currentPlan  = null;
+        this.plan         = null;
         this.activities   = [];
         this.viewMode     = 'dfltMode';
     }
