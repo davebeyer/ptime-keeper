@@ -19,28 +19,32 @@ import {randomInt}       from '../public/js/utils';
 @View({
     directives: [Typeahead, FORM_DIRECTIVES, NgIf, NgFor],
 
-    // ".wrapper           {margin-left: 20px;}",
-    //    "#new-plan-wrapper  {margin: 30px 10px 0 5px;}"
-
     styles: [
         ".activity-entry       {border-left: 8px solid transparent; margin: 2px 0; padding: 2px 0;}",
         ".tight                {padding: 0 5px;}",
         ".form-indent          {margin-left: 20px; width:calc(100% - 20px)}",
-        ".colored-left-border{border-left: 8px solid white;}",
+        ".colored-left-border  {border-left: 8px solid white;}",
         ".new-section          {margin-top: 30px;}"
     ],
 
     template: `
       <div class="container">
-        <div [hidden]="(viewMode == 'confirmOverlay') || !currentActivities.length">
-          <div class="row">
+
+        <div [hidden]="(viewMode == 'confirmOverlay')">
+
+          <div class="row"  [hidden]="!activities.length">
             <h2 class="col-xs-9 page-title"> Current plan </h2>
             <button (click)="startNewPlan($event)" class="col-xs-3 btn btn-default"> 
               New plan
             </button>
           </div>
+
+          <div class="row"  [hidden]="activities.length">
+            <h2 class="col-xs-12 page-title"> New plan </h2>
+   	  </div>
+
           <div class="row activity-entry" 
-              *ng-for="#act of currentActivities" 
+              *ng-for="#act of activities" 
               [style.border-left-color]="categoryColor(act.category)">
             <div class="col-xs-4">{{categoryName(act.category)}}</div>
             <div class="col-xs-5">{{act.description}}</div>
@@ -49,10 +53,9 @@ import {randomInt}       from '../public/js/utils';
             </div>
           </div>
 
-          <h2 class="new-section">
-          </h2>
+          <hr/>
 
-          <div class="row form-indent">
+          <div class="row form-indent" style="margin-top:30px">
             <div class="col-xs-3 tight"><label>Category</label></div>
             <div class="col-xs-6 tight"><label>Description</label></div>
             <div class="col-xs-2 tight"><label><img src="/img/tomato-tn.png"/>&#39;s </label></div>
@@ -60,7 +63,7 @@ import {randomInt}       from '../public/js/utils';
           </div>
 
           <div class="colored-left-border" [style.border-color]="selectedCategory.color">
-            <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)" 
+            <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)"
                   class="wrapper form-horizontal form-indent">
 
               <div class="form-group">
@@ -91,31 +94,17 @@ import {randomInt}       from '../public/js/utils';
 
         </div>
 
-        <h2 class="new-section">
-        </h2>
-
-        <h2 class="page-title" [hidden]="(viewMode == 'confirmOverlay') || currentActivities.length">New plan</h2>
-
-        <div class="row" [hidden]="viewMode == 'confirmOverlay'" style="display:none">
-          <div [hidden]="categories.length">
-            <button  (click)="createNewCategory($event)" class="col-xs-12  btn btn-primary">
-              Create your first work category
-            </button>
-          </div>
-
-          <div [hidden]="!categories.length">
-            <button (click)="createNewCategory($event)" class="col-xs-5 col-xs-offset-1  btn btn-primary">
-              New category
-            </button>
-          </div>
-        </div>
 
         <div  [hidden]="viewMode != 'newCat'" style="margin-left:30px">
 
           <div class="row form-indent">
-            <h4 class="col-xs-11 tight"> Create a new work category </h4>
+
+            <h4 class="col-xs-11 tight" [hidden]="!categories.length">Create a new work category </h4>
+            <h4 class="col-xs-11 tight" [hidden]="categories.length"> Create first work category<br/>(like "Math" or "Pay bills")</h4>
             <div class="col-xs-1 tight" style="padding-top:10px">
-              <a href="#"><i  (click)="cancelNewCategory($event)" class="fa fa-remove"></i></a>
+              <a href="#" [hidden]="!categories.length">
+                <i  (click)="cancelNewCategory($event)" class="fa fa-remove"></i>
+              </a>
             </div>
           </div>
 
@@ -190,7 +179,7 @@ export class Plan implements CanReuse {
     newActForm       : ControlGroup;
 
     currentPlan      : any;
-    currentActivities : Array<any>
+    activities       : Array<any>
 
     confirmTitle     : string;
     confirmMessage   : string;
@@ -199,7 +188,7 @@ export class Plan implements CanReuse {
 
     constructor(userServ : UserService, fb : FormBuilder, saveMsg : SaveMsg, fBase : FirebaseService) {
         console.log("plan.ts: in constructor")
-	var _this = this;
+        var _this = this;
 
         this.userServ = userServ;
         this.fBase    = fBase;
@@ -209,7 +198,7 @@ export class Plan implements CanReuse {
         this.categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
 
         this.currentPlan       = null;
-        this.currentActivities = [];
+        this.activities        = [];
 
         this.confirmTitle      = '';
         this.confirmMessage    = '';
@@ -237,7 +226,7 @@ export class Plan implements CanReuse {
                 console.log("New value for categoriy", value); 
                 if (value in _this.categoryDict) {
                     _this.selectedCategory = _this.categoryDict[value];
-		    _this.viewMode = 'dfltMode';  // in case the 'newCat' panel is open
+                    _this.viewMode = 'dfltMode';  // in case the 'newCat' panel is open
                 } else { 
                     _this.selectedCategory = _this.NullCategory;
                     if (value == _this.NewCategoryOpt) {
@@ -283,9 +272,9 @@ export class Plan implements CanReuse {
     }
 
     createNewCategory($event? : any) {
-	if ($event) {
+        if ($event) {
             $event.preventDefault();
-	}
+        }
 
         //
         // Try to initialize color to unused color
@@ -356,7 +345,7 @@ export class Plan implements CanReuse {
             // Clear out the category name
             _this.newCatForm.controls['name']['updateValue']('');
 
-	    // Set the category in the new activity form to this new category
+            // Set the category in the new activity form to this new category
             _this.newActForm.controls['cat']['updateValue'](id);
 
             // Flash 'saved' and return to Planning view
@@ -415,7 +404,11 @@ export class Plan implements CanReuse {
                     _this.newActForm.controls['cat']['updateValue'](_this.categories[0].id);
                 }
             }
-            _this.viewMode = 'dfltMode';
+            if (_this.categories.length) {
+                _this.viewMode = 'dfltMode';
+            } else {
+                _this.viewMode = 'newCat';
+            }
         });
     }
 
@@ -432,8 +425,6 @@ export class Plan implements CanReuse {
     getCurrentPlan() {
         var _this = this;
 
-	return; // TESTING
-
         this.userServ.getUserData('plans', {limitToLast : true}).then(function(value) {
 
             if (value) {
@@ -447,7 +438,7 @@ export class Plan implements CanReuse {
 
                 _this.userServ.getUserActivitiesForPlan(planId).then(function(value) {
                     if (value) {
-                        _this.currentActivities = [];
+                        _this.activities = [];
 
                         var activity;
                         var ids = Object.keys(value);
@@ -455,8 +446,8 @@ export class Plan implements CanReuse {
                         for (var i=0; i < ids.length; i++) {
                             _this.trackActivity(value[ids[i]]);
                         }
-                        _this.currentActivities.sort(_this.sortActivities.bind(_this));
-                        console.log("getCurrentActivities: current activities: ", _this.currentActivities);
+                        _this.activities.sort(_this.sortActivities.bind(_this));
+                        console.log("getCurrentActivities: current activities: ", _this.activities);
                     }
                 });
             }
@@ -464,7 +455,7 @@ export class Plan implements CanReuse {
     }
 
     trackActivity(info) {
-        this.currentActivities.push(info);        
+        this.activities.push(info);        
     }
 
     sortCategories(a, b) {
@@ -540,7 +531,7 @@ export class Plan implements CanReuse {
         this.userServ.updateUserData(userUpdate).then(function() {
             _this.saveMsg.flashMsg();
             _this.trackActivity(newActivity);
-            _this.currentActivities.sort(_this.sortActivities.bind(_this));
+            _this.activities.sort(_this.sortActivities.bind(_this));
             console.log("Successfully added activity ", entry);
         });
     }
@@ -553,14 +544,14 @@ export class Plan implements CanReuse {
         // this.confirmId      = 'start-new-plan';
         this.confirmTitle   = "Start a new plan";
         this.confirmMessage = "Please confirm that you'd like to start with a completely new (initially empty) plan.";
-        this.viewMode = 'confirmOverlay';
+        this.viewMode       = 'confirmOverlay';
     }
 
     confirmYes() {
         // TODO: currently, only one type of confirmation
-        this.currentPlan       = null;
-        this.currentActivities = [];
-        this.viewMode = 'dfltMode';
+        this.currentPlan  = null;
+        this.activities   = [];
+        this.viewMode     = 'dfltMode';
     }
 
     confirmNo() {
