@@ -41,21 +41,30 @@ import {randomInt}       from '../public/js/utils';
 
           <div class="row"  [hidden]="activities.length">
             <h2 class="col-xs-12 page-title"> New plan </h2>
-   	  </div>
+          </div>
 
           <div class="row activity-entry" 
               *ng-for="#act of activities" 
               [style.border-left-color]="categoryColor(act.category)">
-            <div class="col-xs-4">{{categoryName(act.category)}}</div>
-            <div class="col-xs-5">{{act.description}}</div>
-            <div class="col-xs-3">
+            <div class="col-xs-4 tight">{{categoryName(act.category)}}</div>
+            <div class="col-xs-5 tight">{{act.description}}</div>
+            <div class="col-xs-2 tight">
               <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
+            </div>
+            <div class="col-xs-1 tight" style="padding-top:2px">
+              <a href="#">
+                <i  (click)="delActivity($event, act)" class="fa fa-remove"></i>
+              </a>
             </div>
           </div>
 
-          <hr/>
+          <hr style="margin-top:30px"/>
 
-          <div class="row form-indent" style="margin-top:30px">
+          <div class="row form-indent">
+            <h4 class="col-xs-11 tight">Add an activity</h4>
+          </div>
+
+          <div class="row form-indent">
             <div class="col-xs-3 tight"><label>Category</label></div>
             <div class="col-xs-6 tight"><label>Description</label></div>
             <div class="col-xs-2 tight"><label><img src="/img/tomato-tn.png"/>&#39;s </label></div>
@@ -99,7 +108,7 @@ import {randomInt}       from '../public/js/utils';
 
           <div class="row form-indent">
 
-            <h4 class="col-xs-11 tight" [hidden]="!categories.length">Create a new work category </h4>
+            <h4 class="col-xs-11 tight" [hidden]="!categories.length">Add a new work category </h4>
             <h4 class="col-xs-11 tight" [hidden]="categories.length"> Create first work category<br/>(like "Math" or "Pay bills")</h4>
             <div class="col-xs-1 tight" style="padding-top:10px">
               <a href="#" [hidden]="!categories.length">
@@ -316,7 +325,24 @@ export class Plan implements CanReuse {
         this.viewMode = 'dfltMode';
 
         if (this.categories.length) { 
-            this.newActForm.controls['cat']['updateValue'](this.categories[0].id);
+            this.resetActivityForm(this.categories[0].id, true);
+        }
+    }
+
+    resetActivityForm(catId? : string, catOnly? : boolean) {
+        if (!catId) {
+            if (this.categories.length) {
+                catId = this.categories[0]['id']; 
+            } else {
+                catId = '';
+            }
+        }
+
+        this.newActForm.controls['cat']['updateValue'](catId);
+
+        if (!catOnly) {
+            this.newActForm.controls['descr']['updateValue']('');
+            this.newActForm.controls['poms']['updateValue']('2');
         }
     }
 
@@ -346,7 +372,7 @@ export class Plan implements CanReuse {
             _this.newCatForm.controls['name']['updateValue']('');
 
             // Set the category in the new activity form to this new category
-            _this.newActForm.controls['cat']['updateValue'](id);
+            _this.resetActivityForm(id, true);
 
             // Flash 'saved' and return to Planning view
             _this.saveMsg.flashMsg();
@@ -399,10 +425,7 @@ export class Plan implements CanReuse {
                 }
                 _this.categories.sort(_this.sortCategories.bind(_this));
 
-                _this.newActForm.controls['poms']['updateValue']('2');
-                if (_this.categories.length) { 
-                    _this.newActForm.controls['cat']['updateValue'](_this.categories[0].id);
-                }
+                _this.resetActivityForm();
             }
             if (_this.categories.length) {
                 _this.viewMode = 'dfltMode';
@@ -485,6 +508,10 @@ export class Plan implements CanReuse {
         this.viewMode = 'dfltMode';
     }
 
+    delActivity($event, activity) {
+        console.log("Deleting activity", activity);
+    }
+
     addActivity(formValue) {
         // descr & poms
         var _this = this;
@@ -532,6 +559,8 @@ export class Plan implements CanReuse {
             _this.saveMsg.flashMsg();
             _this.trackActivity(newActivity);
             _this.activities.sort(_this.sortActivities.bind(_this));
+
+            _this.resetActivityForm();
             console.log("Successfully added activity ", entry);
         });
     }
