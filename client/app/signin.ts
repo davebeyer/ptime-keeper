@@ -53,6 +53,13 @@ import {UserService} from '../services/user';
               </tr>
             </table>
           </div>
+
+          <div>
+            <h4>Interested in a primer in the  <br/> Pomodoro Technique?  Try 
+              <a href="http://lifehacker.com/productivity-101-a-primer-to-the-pomodoro-technique-1598992730" target="_blank">here</a>!
+            </h4>
+          </div>
+
         </div>
       </div>
       `

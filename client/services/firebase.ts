@@ -77,24 +77,6 @@ export class FirebaseService {
     initDB() {
         var _this = this;
 
-	////////////////////////////////////////////////////////////////////////////////////
-	//
-	// TESTING
-	//
-	/*
-	// Notice that this skips over category keys (e.g., 'art', 'math', etc.)
-        _this.fbRef.child('userData/101/categories').orderByChild('color').equalTo('orange').once('value', function(data) {
-	    console.log("TESTING ONE", data.val());
-	});
-
-	// Notice that this skips over activity id keys, and be sure to include equalTo()
-        _this.fbRef.child('userData/101/activities').orderByChild('plans/ghi').equalTo('1').once('value', function(data) {
-	    console.log("TESTING TWO", data.val());
-	});
-	*/
-	//
-	////////////////////////////////////////////////////////////////////////////////////
-
         return new Promise(function(resolve, reject) {
 
             _this.fbRef.once('value', function(data) {

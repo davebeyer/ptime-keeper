@@ -4,11 +4,12 @@ import {Component, View}                from 'angular2/angular2';
 import {FORM_DIRECTIVES, FormBuilder, Control, ControlGroup, Validators, NgIf, NgFor} from 'angular2/angular2';
 import {CanReuse, ComponentInstruction} from 'angular2/router';
 
-import {Typeahead}       from '../components/typeahead';
-import {SaveMsg}         from '../components/savemsg';
+import {Typeahead}         from '../components/typeahead';
+import {SaveMsg}           from '../components/savemsg';
 
-import {UserService}     from '../services/user';
-import {FirebaseService} from '../services/firebase';
+import {UserService}       from '../services/user';
+import {FirebaseService}   from '../services/firebase';
+import {ActivitiesService} from '../services/activities';
 
 import {randomInt, formatDate, formatTime} from '../public/js/utils';
 
@@ -194,6 +195,7 @@ export class Plan implements CanReuse {
 
     userServ         : UserService;
     fBase            : FirebaseService;
+    actServ          : ActivitiesService
     saveMsg          : SaveMsg;
 
     newCatForm       : ControlGroup;
@@ -210,11 +212,16 @@ export class Plan implements CanReuse {
 
     fb               : FormBuilder;
 
-    constructor(userServ : UserService, fb : FormBuilder, saveMsg : SaveMsg, fBase : FirebaseService) {
+    constructor(userServ : UserService, 
+		actServ  : ActivitiesService,
+		fb       : FormBuilder, 
+		saveMsg  : SaveMsg, 
+		fBase    : FirebaseService) {
         console.log("plan.ts: in constructor")
         var _this = this;
 
         this.userServ = userServ;
+	this.actServ  = actServ;
         this.fBase    = fBase;
         this.saveMsg  = saveMsg;
         this.fb       = fb;

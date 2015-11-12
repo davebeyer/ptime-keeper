@@ -8,21 +8,22 @@ import {ROUTER_PROVIDERS, RouteConfig, Router}                   from 'angular2/
 import {Route, Location, LocationStrategy, HashLocationStrategy} from 'angular2/router';
 import {RouterOutlet}                                            from 'angular2/router';
 
-import {Header}          from './header';
-import {Footer}          from './footer';
+import {Header}            from './header';
+import {Footer}            from './footer';
 
-import {SignIn}          from './signin';
-import {Preferences}     from './preferences';
+import {SignIn}            from './signin';
+import {Preferences}       from './preferences';
 
-import {Plan}            from './plan';
-import {Work}            from './work';
-import {Review}         from './review';
+import {Plan}              from './plan';
+import {Work}              from './work';
+import {Review}            from './review';
 
-import {UserService}     from '../services/user';
-import {FirebaseService} from '../services/firebase';
-import {SettingsService} from '../services/settings';
+import {UserService}       from '../services/user';
+import {FirebaseService}   from '../services/firebase';
+import {SettingsService}   from '../services/settings';
+import {ActivitiesService} from '../services/activities';
 
-import {SaveMsg}         from '../components/savemsg';
+import {SaveMsg}           from '../components/savemsg';
 
 
 @Component({
@@ -54,7 +55,9 @@ class PomodoroTimeKeeper {
     router   : Router;
     fBase    : FirebaseService;
 
-    constructor(router : Router, userServ : UserService, fBase : FirebaseService) {
+    constructor(router   : Router, 
+		userServ : UserService, 
+		fBase    : FirebaseService) {
         this.router   = router;
         this.userServ = userServ;
         this.fBase    = fBase;
@@ -85,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function(){
               [
                   UserService,
                   FirebaseService,
+		  ActivitiesService,
 		  SettingsService,
 		  SaveMsg,
                   ROUTER_PROVIDERS,
