@@ -10,7 +10,11 @@ import {SaveMsg}         from '../components/savemsg';
 import {UserService}     from '../services/user';
 import {FirebaseService} from '../services/firebase';
 
-import {randomInt}       from '../public/js/utils';
+import {randomInt, formatDate, formatTime} from '../public/js/utils';
+
+var moment = require('moment');
+
+declare var jQuery:any;
 
 @Component({
     selector: 'plan-block'
@@ -33,7 +37,9 @@ import {randomInt}       from '../public/js/utils';
         <div [hidden]="(viewMode == 'confirmOverlay')">
 
           <div class="row"  [hidden]="!activities.length">
-            <h2 class="col-xs-9 page-title"> Current plan </h2>
+            <h2 class="col-xs-9 page-title" data-toggle="tooltip" title="Plan created: {{planDate}} at {{planTime}}"> 
+              {{planDate}} Plan 
+            </h2>
             <button (click)="startNewPlan($event)" class="col-xs-3 btn btn-default"> 
               New plan
             </button>
@@ -58,62 +64,68 @@ import {randomInt}       from '../public/js/utils';
             </div>
           </div>
 
-          <hr style="margin-top:30px"/>
+          <hr [hidden]="!activities.length" style="margin-top:30px"/>
 
-          <div class="row form-indent">
-            <h4 class="col-xs-11 tight">Add an activity</h4>
-          </div>
+          <div [hidden]="!categories.length">
+            <div class="row form-indent">
+              <h4 class="col-xs-12 tight" [hidden]="!activities.length">Add an activity</h4>
+              <h3 class="col-xs-12 tight" [hidden]="activities.length">Add an activity</h3>
+            </div>
 
-          <div class="row form-indent">
-            <div class="col-xs-3 tight"><label>Category</label></div>
-            <div class="col-xs-6 tight"><label>Description</label></div>
-            <div class="col-xs-2 tight"><label><img src="/img/tomato-tn.png"/>&#39;s </label></div>
-            <div class="col-xs-1 tight"><label>&nbsp; </label></div>
-          </div>
+            <div class="row form-indent">
+              <div class="col-xs-3 tight"><label>Category</label></div>
+              <div class="col-xs-6 tight"><label>Description</label></div>
+              <div class="col-xs-2 tight"><label><img src="/img/tomato-tn.png"/>&#39;s </label></div>
+              <div class="col-xs-1 tight"><label>&nbsp; </label></div>
+            </div>
 
-          <div class="colored-left-border" [style.border-color]="selectedCategory.color">
-            <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)"
-                  class="wrapper form-horizontal form-indent">
+            <div class="colored-left-border" [style.border-color]="selectedCategory.color">
+              <form [ng-form-model]="newActForm" #fwork="form" (ng-submit)="addActivity(fwork.value)"
+                    class="wrapper form-horizontal form-indent">
 
-              <div class="form-group">
-                <div class="col-xs-3 tight">
-                  <select class="form-control" ng-control="cat">
-                    <option *ng-for="#c of categories" value="{{c.id}}">{{c.name}}</option>
-                    <option value="{{NewCategoryOpt}}"> (New category) </option>
-                  </select>
+                <div class="form-group">
+                  <div class="col-xs-3 tight">
+                    <select class="form-control" ng-control="cat">
+                      <option *ng-for="#c of categories" value="{{c.id}}">{{c.name}}</option>
+                      <option value="{{NewCategoryOpt}}"> (New category) </option>
+                    </select>
+                  </div>
+
+                  <div class="col-xs-6 tight">
+                    <input placeholder="(optional)"type="text" class="form-control" ng-control="descr">
+                  </div>
+
+                  <div class="col-xs-2 tight">
+                    <select class="form-control" ng-control="poms">
+                      <option *ng-for="#i of range(8)" value="{{i}}"> &nbsp;{{i}}&nbsp; </option>
+                    </select>
+                  </div>
+
+                  <div class="col-xs-1 tight">
+                    <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid"> + </button>
+                  </div>
                 </div>
 
-                <div class="col-xs-6 tight">
-                  <input placeholder="(optional)"type="text" class="form-control" ng-control="descr">
-                </div>
-
-                <div class="col-xs-2 tight">
-                  <select class="form-control" ng-control="poms">
-                    <option *ng-for="#i of range(8)" value="{{i}}"> &nbsp;{{i}}&nbsp; </option>
-                  </select>
-                </div>
-
-                <div class="col-xs-1 tight">
-                  <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid"> + </button>
-                </div>
-              </div>
-
-            </form>
+              </form>
+            </div>
           </div>
 
         </div>
-
 
         <div  [hidden]="viewMode != 'newCat'" style="margin-left:30px">
 
           <div class="row form-indent">
 
             <h4 class="col-xs-11 tight" [hidden]="!categories.length">Add a new work category </h4>
-            <h4 class="col-xs-11 tight" [hidden]="categories.length"> Create first work category<br/>(like "Math" or "Pay bills")</h4>
-            <div class="col-xs-1 tight" style="padding-top:10px">
-              <a href="#" [hidden]="!categories.length">
-                <i  (click)="cancelNewCategory($event)" class="fa fa-remove"></i>
+            <div class="col-xs-1 tight" [hidden]="!categories.length" style="padding-top:10px">
+              <a href="#">
+                <i (click)="cancelNewCategory($event)" class="fa fa-remove"></i>
               </a>
+            </div>
+
+            <div class="col-xs-12 tight" [hidden]="categories.length"> 
+              <h3 style="margin-bottom:5px">Create your first work category</h3>
+              <p>(like "Math" or "Pay bills")</p>
             </div>
           </div>
 
@@ -157,7 +169,7 @@ import {randomInt}       from '../public/js/utils';
 
         <div [hidden]="viewMode != 'confirmOverlay'">
           <h2>{{confirmTitle}}</h2>
-          <h4 style="margin: 15px 0 30px 0">{{confirmMessage}}</h4>
+          <h5 style="margin: 15px 0 30px 0">{{confirmMessage}}</h5>
           <button (click)="confirmYes($event)" class="btn btn-primary">Confirm</button>
           <button (click)="confirmNo($event)" class="btn btn-default">Cancel</button>
         </div>
@@ -190,6 +202,9 @@ export class Plan implements CanReuse {
     currentPlan      : any;
     activities       : Array<any>
 
+    planDate         : string;
+    planTime         : string;
+
     confirmTitle     : string;
     confirmMessage   : string;
 
@@ -208,6 +223,9 @@ export class Plan implements CanReuse {
 
         this.currentPlan       = null;
         this.activities        = [];
+
+        this.planDate          = '';
+        this.planTime          = '';
 
         this.confirmTitle      = '';
         this.confirmMessage    = '';
@@ -256,6 +274,11 @@ export class Plan implements CanReuse {
 
         this.getCategories();
         this.getCurrentPlan();
+
+        // Activate tooltips
+        jQuery('[data-toggle="tooltip"]').tooltip({
+            'placement': 'top'
+        });
     }
 
     //
@@ -444,6 +467,7 @@ export class Plan implements CanReuse {
             if (_this.categories.length) {
                 _this.viewMode = 'dfltMode';
             } else {
+                _this.resetCategoryForm(true);
                 _this.viewMode = 'newCat';
             }
         });
@@ -459,6 +483,15 @@ export class Plan implements CanReuse {
     // Handling for this plan
     //
 
+    initCurrentPlan(plan, planId) {
+        this.currentPlan = plan
+        this.currentPlan['created'] = planId     // convenience
+
+        var parseableDT = planId.replace('_', '.');
+        this.planDate    = moment(parseableDT).format("ddd DMMMYY");
+        this.planTime    = moment(parseableDT).format("h:ss a");
+    }
+
     getCurrentPlan() {
         var _this = this;
 
@@ -467,8 +500,7 @@ export class Plan implements CanReuse {
             if (value) {
                 var planId = Object.keys(value)[0];  // should only be one key
 
-                _this.currentPlan = value[planId];
-                _this.currentPlan['created'] = planId     // convenience
+                _this.initCurrentPlan(value[planId], planId);
 
                 // NOTE: Alternatively could iterate to get activities listed in 
                 //       currentPlan.activities.
@@ -485,6 +517,14 @@ export class Plan implements CanReuse {
                         }
                         _this.activities.sort(_this.sortActivities.bind(_this));
                         console.log("getCurrentActivities: current activities: ", _this.activities);
+                    } else {
+                        // If there are no activities associated with this play, 
+                        // then reset plan to null.
+                        //
+                        // Could also consider deleting this plan, but leave it in place
+                        // for now in case something weird is happening with DB.
+
+                        _this.currentPlan = null;
                     }
                 });
             }
@@ -496,7 +536,7 @@ export class Plan implements CanReuse {
     }
 
     sortCategories(a, b) {
-        if (a.name < b.name) {
+        if (a.name.toLowerCase() < b.name.toLowerCase()) {
             return -1;
         } else {
             return 1;
@@ -504,8 +544,8 @@ export class Plan implements CanReuse {
     }
 
     sortActivities(a, b) {
-        var name1 = this.categoryName(a.category);
-        var name2 = this.categoryName(b.category);
+        var name1 = this.categoryName(a.category).toLowerCase();
+        var name2 = this.categoryName(b.category).toLowerCase();
         if (name1 < name2) {
             return -1;
         } else if (name2 < name1) {
@@ -523,7 +563,30 @@ export class Plan implements CanReuse {
     }
 
     delActivity($event, activity) {
-        console.log("Deleting activity", activity);
+        var _this      = this;
+        var planId     = this.currentPlan['created'];
+        var activityId = activity['created'];
+
+        console.log("Deleting activity", activity, planId);
+        this.userServ.delUserActivityFromPlan(activity, planId).then(function(err) {
+            if (err) {
+                console.error("Failed attempting to delete activity from plan with error: " + err, activity, planId);
+            } else {
+                for (var i = 0; i < _this.activities.length; i++) {
+                    if (activityId == _this.activities[i]['created']) {
+                        _this.activities.splice(i, 1);   // remove this entry
+                        break;
+                    }
+                }
+
+                if (!_this.activities.length) {
+                    // No more activities in plan, so reset/update to most recent plan
+                    _this.getCurrentPlan();
+                }
+
+                console.log("Succesfully deleted activity from plan", activity, planId);
+            }
+        });
     }
 
     addActivity(formValue) {
@@ -543,8 +606,8 @@ export class Plan implements CanReuse {
         }
 
         if (this.currentPlan == null) {
-            this.currentPlan = {created : created,
-                                name    : created};  // later, allow possibility of naming plans
+            // later, allow possibility of naming plans
+            this.initCurrentPlan({name : created}, created);
         } 
 
         if (!this.currentPlan['activities']) {

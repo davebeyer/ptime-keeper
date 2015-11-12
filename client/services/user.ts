@@ -34,7 +34,7 @@ export class UserService {
 
         // Register the authentication callback
         this.fBase.fbRef.onAuth(function(authData) {
-            _this.updateUserIdData(authData);
+            _this.updateUserIdentityData(authData);
         });
 
         // ///////////////////////
@@ -64,7 +64,7 @@ export class UserService {
                     console.log("Login Failed!", error);
                 }
             } else if (authData) {
-                _this.updateUserIdData(authData); // accelerate the process a little
+                _this.updateUserIdentityData(authData); // accelerate the process a little
                 console.log("Authenticated successfully with payload:", authData);
             } else {
                 console.log("Login apparently failed, but without error info");
@@ -95,7 +95,7 @@ export class UserService {
         this.userId          = 10;
     }
 
-    updateUserIdData(authData) {
+    updateUserIdentityData(authData) {
         if (authData == null) {
             this.resetUserData();
             return;
@@ -143,7 +143,7 @@ export class UserService {
                 _this.fullName        = authData.google.cachedUserProfile.name;
                 break;
             default:
-            console.error("UserService:updateUserIdData - Unsupported provider", provider);
+            console.error("UserService:updateUserIdentityData - Unsupported provider", provider);
             return;
             }
 
@@ -157,6 +157,7 @@ export class UserService {
             var userId = _this.userId;
             if (!userId) {
                 reject("No signed in user, so unable to update user data!");
+                return;
             }
 
             var dataRef;
@@ -172,6 +173,152 @@ export class UserService {
         });
     }
 
+    /**
+     * This  removes this activity from this plan, unless 
+     * the activity is attached to no other plans, and has no events, 
+     * in which case the activity is deleted entirely.
+     */
+    delUserActivityFromPlan(activity, planId) {
+        var _this      = this;
+        var userRef    = this.fBase.fbRef;
+        var activityId = activity['created'];
+
+        var actPath    = 'activities/' + activityId;
+        var planPath   = 'plans/'      + planId + '/activities/' + activityId;
+
+        return new Promise(function(resolve, reject) {
+            var userId = _this.userId;
+            if (!userId) {
+                reject("No signed in user, so unable to delete activity data!");
+                return;
+            }
+
+            var userRef = _this.fBase.fbRef.child('userData').child(userId.toString());
+
+            _this._unlinkActivityFromPlan(activityId, planId).then(function() {
+                var dataRef = userRef.child(actPath);
+
+                if (_this.canDelActivity(activity, planId)) {
+                    dataRef.remove(function(err) {
+                        if (err) {
+                            console.error("Error, unable to delete activity", activity, planId);
+                            reject("Attempt to delete activity failed with error: " + err);
+                            return;
+                        }
+                        resolve();
+                    });
+                } else {
+                    dataRef = dataRef.child("plans/" + planId);
+                    dataRef.remove(function(err) {
+                        if (err) {
+                            console.error("Error, unable to delete activity's reference to plans", activity, planId);
+                            reject("Attempt to delete activity failed with error: " + err);
+                            return;
+                        }
+                        resolve();
+                    });
+                }
+            });
+        });
+    }
+
+    /**
+     * Only unlinks the activity from a given plan 
+     * (does NOT also handle unlinking the plan from the activity)
+     */
+    _unlinkActivityFromPlan(activityId, planId) {
+        var _this   = this;
+        var userRef = this.fBase.fbRef;
+        var path    = 'plans/' + planId;
+
+        return new Promise(function(resolve, reject) {
+            var userId = _this.userId;
+            if (!userId) {
+                reject("No signed in user, so unable to unlink activity from plan!");
+                return;
+            }
+
+            var userRef = _this.fBase.fbRef.child('userData').child(userId.toString());
+            var dataRef = userRef.child(path);
+
+            _this.canDelPlan(planId, activityId).then(function(canDel) {
+                if (!canDel) {
+                    // Just remove link
+                    dataRef = dataRef.child('activities/' + activityId);
+                    dataRef.remove(function(err) {
+                        if (err) {
+                            console.error("Error, unable to unlink plan's reference to activity", activityId, planId);
+                            reject("Attempt to unlink activity from plan failed with error: " + err);
+                            return;
+                        } 
+                        resolve();
+                    });
+                } else {
+                    // Remove entire plan
+                    dataRef.remove(function(err) {
+                        if (err) {
+                            console.error("Error, unable to delete plan (when unlinking activity)", activityId, planId);
+                            reject("Attempt to unlink activity from plan failed with error: " + err);
+                            return;
+                        } 
+                        resolve();
+                    });
+                }
+            });
+        });
+    }
+
+    canDelPlan(planId, ignoreActivityId) {
+        var _this   = this;
+        var userRef = this.fBase.fbRef;
+        var path    = 'plans/' + planId;
+
+        return new Promise(function(resolve, reject) {
+            _this.getUserData(path).then(function(data) {
+                if (!data || !data['activities']) {
+                    resolve(true);
+                    return;
+                }
+
+                var activityIds = Object.keys(data['activities']);
+                for (var i = 0; i < activityIds.length; i++) {
+                    if (activityIds[i] == ignoreActivityId) {
+                        continue;
+                    }
+                    resolve(false);
+                    return;
+                }
+                resolve(true);
+            });
+        });
+    }
+
+    canDelActivity(activity, ignorePlanId?) {
+        if (activity.events && Object.keys(activity.events).length) {
+            // Activity has events, so not ok to delete
+            return false; 
+        }
+
+        // No events, so a candidate to delete
+        
+        if (!activity.plans) {
+            return true;  // No plans, so ok to delete
+        }
+
+        var planIds = Object.keys(activity.plans);
+        for (var i = 0; i < planIds.length; i++) {
+            if (planIds[i] == ignorePlanId) {
+                continue; // ignore this one
+            } 
+
+            // On a plan other than the ignored plan, so not ok to delete
+            return false;  
+        }
+
+        // ok to delete
+        return true;
+    }
+
     getUserActivitiesForPlan(planId) {
         var _this = this;
         var fbRef = this.fBase.fbRef;
@@ -180,6 +327,7 @@ export class UserService {
             var userId = _this.userId;
             if (!userId) {
                 reject("No signed in user, so unable to get user activities!");
+                return;
             }
 
             var actPath  = 'userData/' + userId + '/activities';

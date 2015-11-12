@@ -101,24 +101,25 @@ Saves data in the cloud, but also works offline
                 * color
 
         * plans
-            * id  <datetime>  [limitToLast() to get current]
-                * created
+            * id  <created datetime>  [limitToLast() to get current]
+                * created : <datetime>
                 * name - default to formatted date & time
                 * activities 
                       * activityIds - bidirectional links ("denormalized data")
 
         * activities
-            * id  <datetime>
-                * category : <categoryId>
+            * id  <created datetime>
                 * created  : <datetime>
+                * category : <categoryId>
                 * description  : <string>
                 * estimate_poms : <number>  (supports fractions, to 1/4ths)
                 * plans
                     * planIds - bidirectional links ("denormalized data")
                                 [equalTo(<planId>) to get activities for a given plan]
-            * events
-                * created
-                * eventType (Start, Resume, Progress, Break, Complete)
+                * events
+                    * id <created datetime>
+                        * created : <datetime>
+                        * eventType (Start, Resume, Progress, Break, Complete)
 
         * Preferences
             * work_mins

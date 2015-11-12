@@ -8,25 +8,66 @@
 // http://epeli.github.io/underscore.string/#api
 //
 
-export function formatDatetime(dt?:Date)
+export function formatDatetime(dt?:any, options?:any)
 {
+    if (!options) { options = {}; }
+
     if (dt === undefined) {
         dt = new Date();
+    } else if (typeof dt == 'string') {
+        dt = new Date(dt);  // e.g., to convert to local time
     }
 
-    var res = dt.toISOString().slice(0, 19);
+    var res;
+    if (options.iso) {
+        res = dt.toISOString().slice(0, 19);
+    } else {
+        res = dt.toString().slice(4, 21);
+    }
+
     res = res.replace('T', ' ');
 
     return res;
 }
 
-export function formatDate(dt?:Date)
+export function formatDate(dt?:any, options?:any)
 {
+    if (!options) { options = {}; }
+
     if (dt === undefined) {
         dt = new Date();
+    } else if (typeof dt == 'string') {
+        dt = new Date(dt);  // e.g., to convert to local time
     }
 
-    var res = dt.toISOString().slice(0, 10);
+    if (options.iso) {
+        // year, month, day
+        var res = dt.toISOString().slice(0, 10);
+    } else {
+        var res = dt.toString().slice(4, 15);
+    }
+
+    return res;
+}
+
+export function formatTime(dt?:any, options?:any)
+{
+    if (!options) { options = {}; }
+
+    if (dt === undefined) {
+        dt = new Date();
+    } else if (typeof dt == 'string') {
+        dt = new Date(dt);  // e.g., to convert to local time
+    }
+
+    var res;
+
+    if (options.iso) {
+        // Hours & mins
+        res = dt.toISOString().slice(11, 16);
+    } else {
+        res = dt.toString().slice(16, 21);
+    }
 
     return res;
 }

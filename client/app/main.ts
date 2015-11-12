@@ -24,7 +24,6 @@ import {SettingsService} from '../services/settings';
 
 import {SaveMsg}         from '../components/savemsg';
 
-declare var jQuery:any;
 
 @Component({
     selector: 'app'
