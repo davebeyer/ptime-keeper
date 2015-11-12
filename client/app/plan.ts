@@ -37,7 +37,7 @@ declare var jQuery:any;
         <div [hidden]="(viewMode == 'confirmOverlay')">
 
           <div class="row"  [hidden]="!activities.length">
-            <h2 class="col-xs-9 page-title" data-toggle="tooltip" title="Plan created: {{planDate}} at {{planTime}}"> 
+            <h2 class="col-xs-9 page-title" id="plan-title"  title="{{planDate}} Plan created at {{planTime}}"> 
               {{planDate}} Plan 
             </h2>
             <button (click)="startNewPlan($event)" class="col-xs-3 btn btn-default"> 
@@ -274,11 +274,6 @@ export class Plan implements CanReuse {
 
         this.getCategories();
         this.getCurrentPlan();
-
-        // Activate tooltips
-        jQuery('[data-toggle="tooltip"]').tooltip({
-            'placement': 'top'
-        });
     }
 
     //
@@ -484,20 +479,37 @@ export class Plan implements CanReuse {
     //
 
     initCurrentPlan(plan, planId) {
+	var _this = this;
+
         this.currentPlan = plan
         this.currentPlan['created'] = planId     // convenience
 
-        var parseableDT = planId.replace('_', '.');
-        this.planDate    = moment(parseableDT).format("ddd DMMMYY");
-        this.planTime    = moment(parseableDT).format("h:ss a");
+        var parseableDT  = planId.replace('_', '.');
+        var momDT        = moment(parseableDT);
+
+        this.planDate    = momDT.format("ddd, DMMMYY");
+        this.planTime    = momDT.format("h:mma");
+
+	// Update tooltip (after DOM refreshed)
+        setTimeout(function() {
+	    var title = _this.planDate + " Plan created at " + _this.planTime;
+	    var $title = jQuery("#plan-title");
+	    if ($title.attr('data-original-title') === undefined) {
+		$title.tooltip({placement: 'top'});
+	    } else {
+		$title.attr('data-original-title', title).tooltip('fixTitle');
+	    }
+        }, 10);
     }
 
     getCurrentPlan() {
         var _this = this;
 
         this.userServ.getUserData('plans', {limitToLast : true}).then(function(value) {
-
-            if (value) {
+            if (!value) {
+                _this.currentPlan = null;
+                _this.activities  = [];
+            } else {
                 var planId = Object.keys(value)[0];  // should only be one key
 
                 _this.initCurrentPlan(value[planId], planId);
@@ -613,6 +625,8 @@ export class Plan implements CanReuse {
         if (!this.currentPlan['activities']) {
             this.currentPlan['activities'] = {};
         }
+
+	// created is the activityId of this new activity
         this.currentPlan['activities'][created] = "1"
 
         var planId = this.currentPlan['created'];
