@@ -284,10 +284,35 @@ export class Plan implements CanReuse {
         if ($event) {
             $event.preventDefault();
         }
+        this.resetCategoryForm(true);
+        this.viewMode = 'newCat';
+    }
+
+    cancelNewCategory($event) {
+        $event.preventDefault();
+        this.viewMode = 'dfltMode';
+
+        if (this.categories.length) { 
+            this.resetActivityForm(this.categories[0].id, true);
+        }
+    }
+
+    resetCategoryForm(chooseUnusedColor : boolean) {
+        // Always clear name
+        this.newCatForm.controls['name']['updateValue']('');
+
+        if (!chooseUnusedColor) {
+            // Clear color, and return
+            this.newCatForm.controls['color']['updateValue']('');
+            return;
+        }
 
         //
         // Try to initialize color to unused color
         //
+
+        // create a list of the colors currently being used 
+        // by the list of available categories
 
         var currentColors = [];
         for (var i = 0; i < this.categories.length; i++) {
@@ -295,6 +320,9 @@ export class Plan implements CanReuse {
         }
 
         var color = this.newCatForm.controls['color'].value;
+
+        // If the color is already being used by >=1 category (or no color is set), 
+        // then try to choose a good color
 
         if (!color || currentColors.indexOf(color.toLowerCase()) > -1) {
             var colorNum = randomInt(0, this.categoryColors.length);
@@ -315,17 +343,6 @@ export class Plan implements CanReuse {
             }
 
             this.newCatForm.controls['color']['updateValue'](this.categoryColors[colorNum]);
-        }
-
-        this.viewMode = 'newCat';
-    }
-
-    cancelNewCategory($event) {
-        $event.preventDefault();
-        this.viewMode = 'dfltMode';
-
-        if (this.categories.length) { 
-            this.resetActivityForm(this.categories[0].id, true);
         }
     }
 
@@ -367,9 +384,6 @@ export class Plan implements CanReuse {
             // Add category to our list
             _this.trackCategory(id, catEntry);
             _this.categories.sort(_this.sortCategories.bind(_this));
-
-            // Clear out the category name
-            _this.newCatForm.controls['name']['updateValue']('');
 
             // Set the category in the new activity form to this new category
             _this.resetActivityForm(id, true);
