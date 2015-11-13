@@ -13,10 +13,6 @@ import {ActivitiesService} from '../services/activities';
 
 import {randomInt, formatDate, formatTime} from '../public/js/utils';
 
-var moment = require('moment');
-
-declare var jQuery:any;
-
 @Component({
     selector: 'plan-block'
 })
@@ -38,8 +34,8 @@ declare var jQuery:any;
         <div [hidden]="(viewMode == 'confirmOverlay')">
 
           <div class="row"  [hidden]="!activities.length">
-            <h2 class="col-xs-9 page-title" id="plan-title"  title="{{planDate}} Plan created at {{planTime}}"> 
-              {{planDate}} Plan 
+            <h2 class="col-xs-9 page-title plan-title"  title="{{actServ.planDate}} Plan created at {{actServ.planTime}}"> 
+              {{actServ.planDate}} Plan 
             </h2>
             <button (click)="startNewPlan($event)" class="col-xs-3 btn btn-default"> 
               New plan
@@ -52,8 +48,8 @@ declare var jQuery:any;
 
           <div class="row activity-entry" 
               *ng-for="#act of activities" 
-              [style.border-left-color]="categoryColor(act.category)">
-            <div class="col-xs-4 tight">{{categoryName(act.category)}}</div>
+              [style.border-left-color]="actServ.categoryColor(act.category)">
+            <div class="col-xs-4 tight">{{actServ.categoryName(act.category)}}</div>
             <div class="col-xs-5 tight">{{act.description}}</div>
             <div class="col-xs-2 tight">
               <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
@@ -67,7 +63,7 @@ declare var jQuery:any;
 
           <hr [hidden]="!activities.length" style="margin-top:30px"/>
 
-          <div [hidden]="!categories.length">
+          <div [hidden]="!actServ.hasCategories()">
             <div class="row form-indent">
               <h4 class="col-xs-12 tight" [hidden]="!activities.length">Add an activity</h4>
               <h3 class="col-xs-12 tight" [hidden]="activities.length">Add an activity</h3>
@@ -87,7 +83,7 @@ declare var jQuery:any;
                 <div class="form-group">
                   <div class="col-xs-3 tight">
                     <select class="form-control" ng-control="cat">
-                      <option *ng-for="#c of categories" value="{{c.id}}">{{c.name}}</option>
+                      <option *ng-for="#c of actServ.categories" value="{{c.id}}">{{c.name}}</option>
                       <option value="{{NewCategoryOpt}}"> (New category) </option>
                     </select>
                   </div>
@@ -113,18 +109,18 @@ declare var jQuery:any;
 
         </div>
 
-        <div  [hidden]="viewMode != 'newCat'" style="margin-left:30px">
+        <div  [hidden]="viewMode != 'newCat' && actServ.hasCategories()" style="margin-left:30px">
 
           <div class="row form-indent">
 
-            <h4 class="col-xs-11 tight" [hidden]="!categories.length">Add a new work category </h4>
-            <div class="col-xs-1 tight" [hidden]="!categories.length" style="padding-top:10px">
+            <h4 class="col-xs-11 tight" [hidden]="!actServ.hasCategories()">Add a new work category </h4>
+            <div class="col-xs-1 tight" [hidden]="!actServ.hasCategories()" style="padding-top:10px">
               <a href="#">
                 <i (click)="cancelNewCategory($event)" class="fa fa-remove"></i>
               </a>
             </div>
 
-            <div class="col-xs-12 tight" [hidden]="categories.length"> 
+            <div class="col-xs-12 tight" [hidden]="actServ.hasCategories()"> 
               <h3 style="margin-bottom:5px">Create your first work category</h3>
               <p>(like "Math" or "Pay bills")</p>
             </div>
@@ -143,7 +139,7 @@ declare var jQuery:any;
               <div class="form-group">
                 <div class="col-xs-5 tight">
                   <select class="form-control" ng-control="color">
-                    <option  *ng-for="#opt of categoryColors" value="{{opt}}"> {{opt}} </option>
+                    <option  *ng-for="#opt of actServ.categoryColors" value="{{opt}}"> {{opt}} </option>
                   </select>
                 </div>
 
@@ -183,13 +179,8 @@ export class Plan implements CanReuse {
     NewCategoryOpt   = "__new__";
     NullCategory     = {name : '', color : 'transparent'};
 
-    categories       : Array<any>;
-    categoryDict     : any;
-
     selectedCategory : any;
     selectedColor    : string;
-
-    categoryColors   : Array<string>;
 
     viewMode         : string;
 
@@ -201,35 +192,24 @@ export class Plan implements CanReuse {
     newCatForm       : ControlGroup;
     newActForm       : ControlGroup;
 
-    planDate         : string;
-    planTime         : string;
-
     confirmTitle     : string;
     confirmMessage   : string;
 
     fb               : FormBuilder;
 
     constructor(userServ : UserService, 
-		actServ  : ActivitiesService,
-		fb       : FormBuilder, 
-		saveMsg  : SaveMsg, 
-		fBase    : FirebaseService) {
+                actServ  : ActivitiesService,
+                fb       : FormBuilder, 
+                saveMsg  : SaveMsg, 
+                fBase    : FirebaseService) {
         console.log("plan.ts: in constructor")
         var _this = this;
 
         this.userServ = userServ;
-	this.actServ  = actServ;
+        this.actServ  = actServ;
         this.fBase    = fBase;
         this.saveMsg  = saveMsg;
         this.fb       = fb;
-
-        this.categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
-
-        this.plan              = null;
-        this.activities        = [];
-
-        this.planDate          = '';
-        this.planTime          = '';
 
         this.confirmTitle      = '';
         this.confirmMessage    = '';
@@ -255,8 +235,8 @@ export class Plan implements CanReuse {
         this.newActForm.controls['cat'].valueChanges.observer({
             next : function(value) { 
                 console.log("New value for categoriy", value); 
-                if (value in _this.categoryDict) {
-                    _this.selectedCategory = _this.categoryDict[value];
+                if (value in _this.actServ.categoryDict) {
+                    _this.selectedCategory = _this.actServ.categoryDict[value];
                     _this.viewMode = 'dfltMode';  // in case the 'newCat' panel is open
                 } else { 
                     _this.selectedCategory = _this.NullCategory;
@@ -270,14 +250,17 @@ export class Plan implements CanReuse {
 
     onInit() {
         this.viewMode         = 'initializing';
-        this.categories       = [];
-        this.categoryDict     = {};
 
         this.selectedCategory = this.NullCategory;
         this.selectedColor    = "transparent";
 
-        this.getCategories();
-        this.getCurrentPlan();
+        // TODO: Consider subscribing to (TBD) onChange event from ActivitiesService
+        //       to update the following
+
+        this.resetActivityForm();
+        this.resetCategoryForm(true);
+
+        this.viewMode = 'dfltMode';
     }
 
     //
@@ -285,17 +268,17 @@ export class Plan implements CanReuse {
     //
 
     get plan() {
-	return this.actServ.plan;
+        return this.actServ.plan;
     }
     set plan(newPlan : any) {
-	this.actServ.plan = newPlan;
+        this.actServ.plan = newPlan;
     }
 
     get activities() {
-	return this.actServ.activities;
+        return this.actServ.activities;
     }
     set activities(newAct : Array<any>) {
-	this.actServ.activities = newAct;
+        this.actServ.activities = newAct;
     }
 
     //
@@ -310,16 +293,6 @@ export class Plan implements CanReuse {
         return res;
     }
 
-    categoryName(catId) {
-        var catInfo = this.categoryDict[catId];
-        return catInfo ? catInfo.name : catId;
-    }
-
-    categoryColor(catId) {
-        var catInfo = this.categoryDict[catId];
-        return catInfo ? catInfo.color : 'black';
-    }
-
     createNewCategory($event? : any) {
         if ($event) {
             $event.preventDefault();
@@ -332,8 +305,8 @@ export class Plan implements CanReuse {
         $event.preventDefault();
         this.viewMode = 'dfltMode';
 
-        if (this.categories.length) { 
-            this.resetActivityForm(this.categories[0].id, true);
+        if (this.actServ.hasCategories()) { 
+            this.resetActivityForm(this.actServ.categories[0].id, true);
         }
     }
 
@@ -355,8 +328,8 @@ export class Plan implements CanReuse {
         // by the list of available categories
 
         var currentColors = [];
-        for (var i = 0; i < this.categories.length; i++) {
-            currentColors.push(this.categories[i].color.toLowerCase());
+        for (var i = 0; i < this.actServ.categories.length; i++) {
+            currentColors.push(this.actServ.categories[i].color.toLowerCase());
         }
 
         var color = this.newCatForm.controls['color'].value;
@@ -365,11 +338,11 @@ export class Plan implements CanReuse {
         // then try to choose a good color
 
         if (!color || currentColors.indexOf(color.toLowerCase()) > -1) {
-            var colorNum = randomInt(0, this.categoryColors.length);
-            var maxTries = this.categoryColors.length;
+            var colorNum = randomInt(0, this.actServ.categoryColors.length);
+            var maxTries = this.actServ.categoryColors.length;
 
             while (maxTries) {
-                color = this.categoryColors[colorNum].toLowerCase();
+                color = this.actServ.categoryColors[colorNum].toLowerCase();
 
                 if (currentColors.indexOf(color) == -1) {
                     break;  // found an unused color
@@ -377,19 +350,19 @@ export class Plan implements CanReuse {
             
                 maxTries --;
                 colorNum ++;
-                if (colorNum >= this.categoryColors.length) {
+                if (colorNum >= this.actServ.categoryColors.length) {
                     colorNum = 0;
                 }
             }
 
-            this.newCatForm.controls['color']['updateValue'](this.categoryColors[colorNum]);
+            this.newCatForm.controls['color']['updateValue'](this.actServ.categoryColors[colorNum]);
         }
     }
 
     resetActivityForm(catId? : string, catOnly? : boolean) {
         if (!catId) {
-            if (this.categories.length) {
-                catId = this.categories[0]['id']; 
+            if (this.actServ.hasCategories()) {
+                catId = this.actServ.categories[0]['id']; 
             } else {
                 catId = '';
             }
@@ -422,8 +395,8 @@ export class Plan implements CanReuse {
             console.log("Successfully added work category");
 
             // Add category to our list
-            _this.trackCategory(id, catEntry);
-            _this.categories.sort(_this.sortCategories.bind(_this));
+            _this.actServ.trackCategory(id, catEntry);
+            _this.actServ.categories.sort(_this.actServ.sortCategories.bind(_this));
 
             // Set the category in the new activity form to this new category
             _this.resetActivityForm(id, true);
@@ -456,8 +429,8 @@ export class Plan implements CanReuse {
             return {validchars: true};
         }
 
-        for (var i = 0; i < this.categories.length; i++) {
-            if (value == this.categories[i].id) {
+        for (var i = 0; i < this.actServ.categories.length; i++) {
+            if (value == this.actServ.categories[i].id) {
                 return {unique: true};
             }
         }
@@ -465,131 +438,10 @@ export class Plan implements CanReuse {
         return null;  // Valid
     }
 
-    getCategories() {
-        var _this = this;
-
-        this.categories   = [];
-        this.categoryDict = {};
-
-        this.userServ.getUserData('categories').then(function(value) {
-            if (value) {
-                var keys = Object.keys(value);
-                for (var i = 0; i < keys.length; i++) {
-                    _this.trackCategory(keys[i], value[keys[i]]);
-                }
-                _this.categories.sort(_this.sortCategories.bind(_this));
-
-                _this.resetActivityForm();
-            }
-            if (_this.categories.length) {
-                _this.viewMode = 'dfltMode';
-            } else {
-                _this.resetCategoryForm(true);
-                _this.viewMode = 'newCat';
-            }
-        });
-    }
-
-    trackCategory(id, info) {
-        info['id'] = id;
-        this.categories.push(info);
-        this.categoryDict[id] = info;
-    }
-
     //
     // Handling for this plan
     //
 
-    initCurrentPlan(plan, planId) {
-	var _this = this;
-
-        this.plan            = plan
-        this.plan['created'] = planId     // convenience
-
-        var parseableDT  = planId.replace('_', '.');
-        var momDT        = moment(parseableDT);
-
-        this.planDate    = momDT.format("ddd, DMMMYY");
-        this.planTime    = momDT.format("h:mma");
-
-	// Update tooltip (after DOM refreshed)
-        setTimeout(function() {
-	    var title = _this.planDate + " Plan created at " + _this.planTime;
-	    var $title = jQuery("#plan-title");
-	    if ($title.attr('data-original-title') === undefined) {
-		$title.tooltip({placement: 'top'});
-	    } else {
-		$title.attr('data-original-title', title).tooltip('fixTitle');
-	    }
-        }, 10);
-    }
-
-    getCurrentPlan() {
-        var _this = this;
-
-        this.userServ.getUserData('plans', {limitToLast : true}).then(function(value) {
-            if (!value) {
-                _this.plan        = null;
-                _this.activities  = [];
-            } else {
-                var planId = Object.keys(value)[0];  // should only be one key
-
-                _this.initCurrentPlan(value[planId], planId);
-
-                // NOTE: Alternatively could iterate to get activities listed in 
-                //       plan.activities.
-
-                _this.userServ.getUserActivitiesForPlan(planId).then(function(value) {
-                    if (value) {
-                        _this.activities = [];
-
-                        var activity;
-                        var ids = Object.keys(value);
-
-                        for (var i=0; i < ids.length; i++) {
-                            _this.trackActivity(value[ids[i]]);
-                        }
-                        _this.activities.sort(_this.sortActivities.bind(_this));
-                        console.log("getCurrentActivities: current activities: ", _this.activities);
-                    } else {
-                        // If there are no activities associated with this play, 
-                        // then reset plan to null.
-                        //
-                        // Could also consider deleting this plan, but leave it in place
-                        // for now in case something weird is happening with DB.
-
-                        _this.plan = null;
-                    }
-                });
-            }
-        });
-    }
-
-    trackActivity(info) {
-        this.activities.push(info);        
-    }
-
-    sortCategories(a, b) {
-        if (a.name.toLowerCase() < b.name.toLowerCase()) {
-            return -1;
-        } else {
-            return 1;
-        }
-    }
-
-    sortActivities(a, b) {
-        var name1 = this.categoryName(a.category).toLowerCase();
-        var name2 = this.categoryName(b.category).toLowerCase();
-        if (name1 < name2) {
-            return -1;
-        } else if (name2 < name1) {
-            return 1;
-        } else if (a.created < b.created) {
-            return -1;
-        } else {
-            return 1;
-        }
-    }
 
     cancelNewActivity($event) {
         $event.preventDefault();
@@ -615,7 +467,7 @@ export class Plan implements CanReuse {
 
                 if (!_this.activities.length) {
                     // No more activities in plan, so reset/update to most recent plan
-                    _this.getCurrentPlan();
+                    _this.actServ.getCurrentPlan();
                 }
 
                 console.log("Succesfully deleted activity from plan", activity, planId);
@@ -624,57 +476,20 @@ export class Plan implements CanReuse {
     }
 
     addActivity(formValue) {
-        // descr & poms
-        var _this = this;
+        var _this  = this;
+        var values = {
+            categoryId  : this.selectedCategory.id,
+            description : formValue.descr,
+            pomodoros   : formValue.poms
+        };
 
-        console.log("Adding activity ", formValue);
+        console.log("Adding activity ", formValue, values);
+
         this.viewMode = 'dfltMode';
 
-        var created = this.fBase.dateToKey(new Date());
-
-        var newActivity = {
-            category       : this.selectedCategory.id,
-            created        : created,
-            description    : formValue.descr,
-            estimated_poms : formValue.poms
-        }
-
-        if (this.plan == null) {
-            // later, allow possibility of naming plans
-            this.initCurrentPlan({name : created}, created);
-        } 
-
-        if (!this.plan['activities']) {
-            this.plan['activities'] = {};
-        }
-
-	// created is the activityId of this new activity
-        this.plan['activities'][created] = "1"
-
-        var planId = this.plan['created'];
-
-        newActivity['plans'] = {};
-        newActivity['plans'][planId] = "1";
-
-        var entry = {};
-        entry[created] = newActivity;
-
-        //
-        // For simultaneous, multi-location updates
-        // See: https://www.firebase.com/blog/2015-09-24-atomic-writes-and-more.html
-        //
-        var userUpdate = {};
-        userUpdate["activities/" + created] = newActivity;
-        userUpdate["plans/" + planId]       = this.plan;
-
-        // this.userServ.updateUserData(entry, 'activities').then(function() {
-        this.userServ.updateUserData(userUpdate).then(function() {
-            _this.saveMsg.flashMsg();
-            _this.trackActivity(newActivity);
-            _this.activities.sort(_this.sortActivities.bind(_this));
-
+        this.actServ.addActivity(values).then(function() {
             _this.resetActivityForm();
-            console.log("Successfully added activity ", entry);
+            console.log("Successfully added activity ", values);
         });
     }
 

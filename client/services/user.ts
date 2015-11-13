@@ -17,24 +17,30 @@ export class UserService {
     fullName   : string;
     profileImageURL : string;
 
+    _notifyLoginCB : any;
+
     // NOTE: Since this class doesn't have any annotations 
     //       (and thus no angular2 metadata attached by default), we need
     //       to use @Inject here to force metadata to be added, to support
     //       dependency injection.
 
     constructor(@Inject(FirebaseService) fBase : FirebaseService) {
+        var _this = this;
         console.log("users.ts: UserService constructor")
 
-        var _this  = this;
-
-        this.fBase = fBase;
+        this.fBase          = fBase;
+        this._notifyLoginCB = null;
 
         // Initialize
         this.resetUserData();
 
         // Register the authentication callback
         this.fBase.fbRef.onAuth(function(authData) {
-            _this.updateUserIdentityData(authData);
+            _this.updateUserIdentityData(authData).then(function() {
+                if (_this._notifyLoginCB) {
+                    _this._notifyLoginCB();
+                }
+            });
         });
 
         // ///////////////////////
@@ -64,12 +70,24 @@ export class UserService {
                     console.log("Login Failed!", error);
                 }
             } else if (authData) {
-                _this.updateUserIdentityData(authData); // accelerate the process a little
-                console.log("Authenticated successfully with payload:", authData);
+                // accelerate the process a little
+                _this.updateUserIdentityData(authData).then(function() {
+                    console.log("Authenticated successfully with payload:", authData);
+                });
             } else {
                 console.log("Login apparently failed, but without error info");
             }
         });
+    }
+
+    loginNotify(cb : any) {
+        // TODO: create a list if needed later
+        this._notifyLoginCB = cb;
+        
+        if (this.userId) {
+            // Already signed in, so callback immediately
+            this._notifyLoginCB();
+        }
     }
 
     logout() {
@@ -96,57 +114,63 @@ export class UserService {
     }
 
     updateUserIdentityData(authData) {
-        if (authData == null) {
-            this.resetUserData();
-            return;
-        }
-        
         var _this = this;
 
-        var provider;
-        var providerUserId;
+        return new Promise(function(resolve, reject) {
+            if (authData == null) {
+                _this.resetUserData();
+                resolve();
+                return;
+            }
+            
+            var provider;
+            var providerUserId;
 
-        //
-        // First determine provider & provider's user ID in order to 
-        // lookup (or create) user info record
-        //
+            //
+            // First determine provider & provider's user ID in order to 
+            // lookup (or create) user info record
+            //
 
-        provider = authData.provider;
+            provider = authData.provider;
 
-        switch(provider) {
-        case 'google':
-            providerUserId = authData.google.id;
-            break;
-        default:
-            console.error("UserService:updateIdUserData - Unsupported provider", provider);
-            return;
-        }
-
-        //
-        // Look up user info, then set all user data at once 
-        // (so UI is updated all at once)
-        //
-
-        this.fBase.getUser(provider, providerUserId).then(function(userInfo) {
-            console.log("UserId is ", userInfo['userId']);
-
-            _this.userId = userInfo['userId'];
-
-            // TODO: This stuff may later be in returned userInfo record, or 
-            //       from other associated provider records
             switch(provider) {
             case 'google':
-                _this.isLoggedIn      = true;
-                _this.firstName       = authData.google.cachedUserProfile.given_name;
-                _this.lastName        = authData.google.cachedUserProfile.family_name;
-                _this.profileImageURL = authData.google.profileImageURL;
-                _this.fullName        = authData.google.cachedUserProfile.name;
+                providerUserId = authData.google.id;
                 break;
             default:
-            console.error("UserService:updateUserIdentityData - Unsupported provider", provider);
-            return;
+                console.error("UserService:updateIdUserData - Unsupported provider", provider);
+                reject("updateUserIdentityData() failed");
+                return;
             }
 
+            //
+            // Look up user info, then set all user data at once 
+            // (so UI is updated all at once)
+            //
+
+            _this.fBase.getUser(provider, providerUserId).then(function(userInfo) {
+                console.log("UserId is ", userInfo['userId']);
+
+                _this.userId = userInfo['userId'];
+
+                // TODO: This stuff may later be in returned userInfo record, or 
+                //       from other associated provider records
+                switch(provider) {
+                case 'google':
+                    _this.isLoggedIn      = true;
+                    _this.firstName       = authData.google.cachedUserProfile.given_name;
+                    _this.lastName        = authData.google.cachedUserProfile.family_name;
+                    _this.profileImageURL = authData.google.profileImageURL;
+                    _this.fullName        = authData.google.cachedUserProfile.name;
+                    resolve();
+                    return;
+                default:
+                    console.error("UserService:updateUserIdentityData - Unsupported provider", provider);
+                    reject("updateUserIdentityData() failed");
+                    return;
+                }
+
+            });
         });
     }
 
