@@ -10,7 +10,7 @@ import {UserService}       from '../services/user';
 import {FirebaseService}   from '../services/firebase';
 import {ActivitiesService} from '../services/activities';
 
-import {randomInt, formatDate, formatTime} from '../public/js/utils';
+import {randomInt}         from '../public/js/utils';
 
 @Component({
     selector: 'plan-block'
