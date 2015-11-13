@@ -19,14 +19,17 @@ declare var jQuery:any;
         ".info-row             {margin: 30px 0 0 10px; width: calc(100% - 10px); display:flex; align-items:center;}",
         ".act-title            {}",
         ".act-descr            {opacity : 0.6;}",
-        ".timer .btn           {background: transparent; border-width: 2px; transition: background .2s ease-in-out, border .2s ease-in-out;}"
+        ".timer .btn           {background: transparent; border-width: 2px; transition: background .2s ease-in-out, border .2s ease-in-out;}",
+	".timer img            {opacity : 0.7;}",
+	".timer img.pulse      {opacity : 1.0;}"  /* when timer is running */
     ],
+
 
     template: `
         <div class="container">
           <div class="row timer">
             <div class="col-xs-12 text-center" [style.height]="wrpHeight">
-              <img class="abs-center"  [style.height]="pomHeight" [style.width]="pomWidth"  
+              <img class="abs-center animated"  [class.pulse]="timer" [style.height]="pomHeight" [style.width]="pomWidth"  
                    src="/img/tomato-lg.png"/>
               <div class="abs-center"  [style.bottom]="tmrBottom">
                 <span class="timer-clock" [style.font-size]="tmrFont" [style.color]="tmrColor">
@@ -36,12 +39,12 @@ declare var jQuery:any;
               <div class="abs-center"  [style.bottom]="iconBottom">
                 <span [hidden]="!timer">
                   <button (click)="pauseTimer($event)" class="btn btn-default" [style.font-size]="iconFont">
-                    <i class="fa fa-pause"></i> Break
+                    <i class="fa fa-pause"></i>
                   </button>
                 </span>
                 <span  [hidden]="timer">
                   <button (click)="restartTimer($event)" class="btn btn-default" [style.font-size]="iconFont">
-                    <i class="fa fa-play"></i> Work
+                    <i class="fa fa-play"></i>
                   </button>
                 </span>
               </div>
@@ -54,7 +57,7 @@ declare var jQuery:any;
               <span class="act-descr" [style.font-size]="descFont">Homework assignment, chapter 4.5 & 4.6</span>
             </div>
             <div class="col-xs-4 play-icons">
-              <button class="btn btn-default"  [style.font-size]="actFont" [style.color]="actColor" (click)="activityFinished($event)">
+              <button class="btn btn-default"  [style.font-size]="descFont" [style.color]="actColor" (click)="activityFinished($event)">
                 <i class="fa fa-check-square"></i> Done !
               </button>
             </div>
@@ -109,7 +112,9 @@ export class Work {
             _this.resizeTimer();
         });
 
-        this.startTimer();
+	// Timer starts in paused state
+	this.timerDisplay(this.timeRem_ms);
+        this.timer = null;
     }
 
     resizeTimer() {
@@ -132,8 +137,8 @@ export class Work {
         }
 
         this.tmrFont    = Math.floor(height * .25  + 5);
-        this.iconFont   = Math.floor(this.tmrFont * 0.35);
-        this.actFont    = Math.max(13, Math.floor(this.iconFont * 0.80));
+        this.iconFont   = Math.floor(this.tmrFont * 0.45);
+        this.actFont    = Math.max(15, Math.floor(this.iconFont * 0.65));
         this.descFont   = Math.floor(this.actFont  * 0.8);
         
         this.tmrBottom  = Math.floor(height * .35  - (this.tmrFont * .3)) + 'px';
@@ -172,24 +177,33 @@ export class Work {
         var _this = this;
 
         this.startTime = new Date();
-        this.updateDisplay();
 
         this.timer = setInterval(function() {
             _this.updateDisplay();
         }, 1000);
+
+        this.updateDisplay();
     }
 
     updateDisplay() {
-        var duration, neg;
         var now:any     = new Date();
-        var diff:number = now - this.startTime;
+        var diff:number = now - this.startTime - 500; // 500ms rounding
 
-        if (diff > this.timeRem_ms) {
-            duration  = moment.duration(diff - this.timeRem_ms);
+	this.timerDisplay(this.timeRem_ms - diff);
+    }
+
+    timerDisplay(time_ms) {
+        var duration, neg;
+
+	// Next lower number of seconds (e.g., -5.6 => -6)
+	time_ms = Math.floor(time_ms / 1000.0) * 1000;
+
+        if (time_ms < 0) {
+            duration  = moment.duration(-time_ms);
             this.tmrColor = "#EEE";
             neg = "-";
         } else {
-            duration  = moment.duration(this.timeRem_ms - diff);
+            duration  = moment.duration(time_ms);
             this.tmrColor = "#444";
             neg = "";
         }
