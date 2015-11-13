@@ -248,6 +248,8 @@ export class Plan implements CanReuse {
     }
 
     onInit() {
+	var _this = this;
+
         this.viewMode         = 'initializing';
 
         this.selectedCategory = this.actServ.categoryInfo(null);
@@ -262,8 +264,8 @@ export class Plan implements CanReuse {
         this.resetActivityForm();
 
         this.actServ.notifyInit(function() {
-            this.resetCategoryForm(true);
-            this.resetActivityForm();
+            _this.resetCategoryForm(true);
+            _this.resetActivityForm();
         });
     }
 
@@ -383,42 +385,22 @@ export class Plan implements CanReuse {
     addCategory(formValue) {
         var _this = this;
 
-        var catEntry =  {
-            color   : formValue.color.toLowerCase(),
-            created : new Date(),
-            name    : formValue.name
-        }
+	var catEntry = {
+	    color  : formValue.color.toLowerCase(),
+	    name   : formValue.name
+	}
 
-        var newCat = {};
-        var id     = this.nameToCategoryId(formValue.name);
-        newCat[id] = catEntry;
+	this.actServ.addCategory(catEntry).then(function(newCat) {
+            console.log("Successfully added work category", newCat);
 
-        console.log("Adding category", newCat);
+	    var id = Object.keys(newCat)[0]; // only one key
 
-        this.userServ.updateUserData(newCat, 'categories').then(function() {
-            console.log("Successfully added work category");
+	    // Set the category in the new activity form to this new category
+	    _this.resetActivityForm(id, true);
 
-            // Add category to our list
-            _this.actServ.trackCategory(id, catEntry);
-            _this.actServ.categories.sort(_this.actServ.sortCategories.bind(_this));
-
-            // Set the category in the new activity form to this new category
-            _this.resetActivityForm(id, true);
-
-            // Flash 'saved' and return to Planning view
-            _this.saveMsg.flashMsg();
-            _this.viewMode = 'dfltMode';
-            _this.selectedCategory = catEntry;
-        });
-    }
-
-    nameToCategoryId(name : string) {
-        var id = this.fBase.stringToKey(name);
-        if (!id) {
-            return id;
-        } else {
-            return id.toLowerCase();
-        }
+	    _this.viewMode = 'dfltMode';
+	    _this.selectedCategory = newCat[id];
+	});
     }
 
     uniqueCategory (ctrl : Control) : any {
@@ -427,7 +409,7 @@ export class Plan implements CanReuse {
             return {nonempty: true};
         }
         
-        var value = this.nameToCategoryId(ctrl.value);
+        var value = this.actServ.nameToCategoryId(ctrl.value);
 
         if (!value) {
             return {validchars: true};

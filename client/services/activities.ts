@@ -129,6 +129,40 @@ export class ActivitiesService {
         }
     }
 
+    addCategory(catEntry) {
+        var _this = this;
+
+        catEntry['created'] = new Date();
+
+        var newCat = {};
+        var id     = this.nameToCategoryId(catEntry.name);
+        newCat[id] = catEntry;
+
+        console.log("Adding category", newCat);
+
+	return new Promise(function(resolve, reject) {
+            _this.userServ.updateUserData(newCat, 'categories').then(function() {
+                // Add category to our list
+                _this.trackCategory(id, catEntry);
+                _this.categories.sort(_this.sortCategories.bind(_this));
+
+                // Flash 'saved' and return to Planning view
+                _this.saveMsg.flashMsg();
+
+                resolve(newCat);
+            });
+	});
+    }
+    
+    nameToCategoryId(name : string) {
+        var id = this.fBase.stringToKey(name);
+        if (!id) {
+            return id;
+        } else {
+            return id.toLowerCase();
+        }
+    }
+
     //
     // Plan handling
     //
