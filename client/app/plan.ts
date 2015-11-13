@@ -177,7 +177,6 @@ import {randomInt, formatDate, formatTime} from '../public/js/utils';
 
 export class Plan implements CanReuse {
     NewCategoryOpt   = "__new__";
-    NullCategory     = {name : '', color : 'transparent'};
 
     selectedCategory : any;
     selectedColor    : string;
@@ -234,12 +233,12 @@ export class Plan implements CanReuse {
 
         this.newActForm.controls['cat'].valueChanges.observer({
             next : function(value) { 
-                console.log("New value for categoriy", value); 
-                if (value in _this.actServ.categoryDict) {
-                    _this.selectedCategory = _this.actServ.categoryDict[value];
-                    _this.viewMode = 'dfltMode';  // in case the 'newCat' panel is open
+                console.log("New value for category", value); 
+                _this.selectedCategory = _this.actServ.categoryInfo(value);
+                if (_this.selectedCategory.name) {
+                    // valid category, set mode in case the 'newCat' panel is open
+                    _this.viewMode = 'dfltMode'; 
                 } else { 
-                    _this.selectedCategory = _this.NullCategory;
                     if (value == _this.NewCategoryOpt) {
                         _this.createNewCategory();
                     }
@@ -251,16 +250,21 @@ export class Plan implements CanReuse {
     onInit() {
         this.viewMode         = 'initializing';
 
-        this.selectedCategory = this.NullCategory;
+        this.selectedCategory = this.actServ.categoryInfo(null);
         this.selectedColor    = "transparent";
 
         // TODO: Consider subscribing to (TBD) onChange event from ActivitiesService
         //       to update the following
 
-        this.resetActivityForm();
-        this.resetCategoryForm(true);
-
         this.viewMode = 'dfltMode';
+
+        this.resetCategoryForm(true);
+        this.resetActivityForm();
+
+        this.actServ.notifyInit(function() {
+            this.resetCategoryForm(true);
+            this.resetActivityForm();
+        });
     }
 
     //

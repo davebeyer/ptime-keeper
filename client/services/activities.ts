@@ -12,11 +12,12 @@ var moment = require('moment');
 declare var jQuery:any;
 
 export class ActivitiesService {
+    NullCategory     = {name : '', color : 'transparent'};
+    categoryColors   = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
+
     fBase            : FirebaseService;
     userServ         : UserService;
     saveMsg          : SaveMsg;
-
-    categoryColors = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
 
     categories       : Array<any>;
     categoryDict     : any;
@@ -24,6 +25,8 @@ export class ActivitiesService {
     plan             : any;
     planDate         : string;
     planTime         : string;
+
+    _notifyInit      : any;
 
     activities       : Array<any>
 
@@ -47,13 +50,23 @@ export class ActivitiesService {
         this.categories       = [];
         this.categoryDict     = {};
 
+        this._notifyInit      = null;
+
         // Register with the authentication callback
         this.userServ.loginNotify(function() {
             _this.getCategories().then(function() {
-                _this.getCurrentPlan();
+                return _this.getCurrentPlan();
+            }).then(function() {
+                if (_this._notifyInit) {
+                    _this._notifyInit();
+                }
             });
         });
+    }
 
+    notifyInit(cb : any) {
+        // TODO: consider a list of callbacks
+        this._notifyInit = cb;
     }
 
     //
@@ -106,6 +119,14 @@ export class ActivitiesService {
     categoryColor(catId) {
         var catInfo = this.categoryDict[catId];
         return catInfo ? catInfo.color : 'black';
+    }
+
+    categoryInfo(catId) {
+        if (catId in this.categoryDict) {
+            return this.categoryDict[catId];
+        } else {
+            return this.NullCategory;
+        }
     }
 
     //
