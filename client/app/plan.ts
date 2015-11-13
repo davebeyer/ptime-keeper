@@ -2,7 +2,6 @@
 
 import {Component, View}                from 'angular2/angular2';
 import {FORM_DIRECTIVES, FormBuilder, Control, ControlGroup, Validators, NgIf, NgFor} from 'angular2/angular2';
-import {CanReuse, ComponentInstruction} from 'angular2/router';
 
 import {Typeahead}         from '../components/typeahead';
 import {SaveMsg}           from '../components/savemsg';
@@ -175,7 +174,7 @@ import {randomInt, formatDate, formatTime} from '../public/js/utils';
         `
 })
 
-export class Plan implements CanReuse {
+export class Plan  {
     NewCategoryOpt   = "__new__";
 
     selectedCategory : any;
@@ -408,7 +407,7 @@ export class Plan implements CanReuse {
             // Special case, form invalid but don't show an error
             return {nonempty: true};
         }
-        
+
         var value = this.actServ.nameToCategoryId(ctrl.value);
 
         if (!value) {
@@ -434,33 +433,6 @@ export class Plan implements CanReuse {
         this.viewMode = 'dfltMode';
     }
 
-    delActivity($event, activity) {
-        var _this      = this;
-        var planId     = this.plan['created'];
-        var activityId = activity['created'];
-
-        console.log("Deleting activity", activity, planId);
-        this.userServ.delUserActivityFromPlan(activity, planId).then(function(err) {
-            if (err) {
-                console.error("Failed attempting to delete activity from plan with error: " + err, activity, planId);
-            } else {
-                for (var i = 0; i < _this.activities.length; i++) {
-                    if (activityId == _this.activities[i]['created']) {
-                        _this.activities.splice(i, 1);   // remove this entry
-                        break;
-                    }
-                }
-
-                if (!_this.activities.length) {
-                    // No more activities in plan, so reset/update to most recent plan
-                    _this.actServ.getCurrentPlan();
-                }
-
-                console.log("Succesfully deleted activity from plan", activity, planId);
-            }
-        });
-    }
-
     addActivity(formValue) {
         var _this  = this;
         var values = {
@@ -479,6 +451,10 @@ export class Plan implements CanReuse {
         });
     }
 
+    delActivity($event, activity) {
+        this.actServ.delActivity(activity);
+    }
+
     //
     // Confirmation
     //
@@ -492,8 +468,7 @@ export class Plan implements CanReuse {
 
     confirmYes() {
         // TODO: currently, only one type of confirmation
-        this.plan         = null;
-        this.activities   = [];
+	this.actServ.startNewPlan();
         this.viewMode     = 'dfltMode';
     }
 
@@ -502,11 +477,4 @@ export class Plan implements CanReuse {
         this.viewMode = 'dfltMode';
     }
 
-    //
-    // Misc
-    //
-
-    canReuse(next: ComponentInstruction, prev: ComponentInstruction) {
-        return true;
-    }
 }

@@ -41,11 +41,7 @@ export class ActivitiesService {
 
         this.saveMsg    = saveMsg;
 
-        this.plan       = null;
-        this.planDate   = '';
-        this.planTime   = '';
-
-        this.activities = [];
+	this.resetPlan();
 
         this.categories       = [];
         this.categoryDict     = {};
@@ -62,6 +58,17 @@ export class ActivitiesService {
                 }
             });
         });
+    }
+
+    resetPlan() {
+        this.plan       = null;
+        this.planDate   = '';
+        this.planTime   = '';
+        this.activities = [];
+    }
+
+    startNewPlan() {
+	this.resetPlan();
     }
 
     notifyInit(cb : any) {
@@ -140,7 +147,7 @@ export class ActivitiesService {
 
         console.log("Adding category", newCat);
 
-	return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve, reject) {
             _this.userServ.updateUserData(newCat, 'categories').then(function() {
                 // Add category to our list
                 _this.trackCategory(id, catEntry);
@@ -151,7 +158,7 @@ export class ActivitiesService {
 
                 resolve(newCat);
             });
-	});
+        });
     }
     
     nameToCategoryId(name : string) {
@@ -310,4 +317,37 @@ export class ActivitiesService {
         });
 
     }
+
+    delActivity(activity) {
+        var _this      = this;
+        var planId     = this.plan['created'];
+        var activityId = activity['created'];
+
+        console.log("Deleting activity", activity, planId);
+
+        return new Promise(function(resolve, reject) {
+            _this.userServ.delUserActivityFromPlan(activity, planId).then(function(err) {
+                if (err) {
+                    console.error("Failed attempting to delete activity from plan with error: " + err, activity, planId);
+                } else {
+                    for (var i = 0; i < _this.activities.length; i++) {
+                        if (activityId == _this.activities[i]['created']) {
+                            _this.activities.splice(i, 1);   // remove this entry
+                            break;
+                        }
+                    }
+
+                    if (!_this.activities.length) {
+                        // No more activities in plan, so reset/update to most recent plan
+                        _this.getCurrentPlan();
+                    }
+
+                    console.log("Succesfully deleted activity from plan", activity, planId);
+                }
+
+                resolve();
+            });
+        });
+    }
+
 }
