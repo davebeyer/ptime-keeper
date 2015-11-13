@@ -251,6 +251,10 @@ export class ActivitiesService {
         this.activities.push(info);        
     }
 
+    hasActivities() {
+        return (this.activities && this.activities.length > 0);
+    }
+
     sortActivities(a, b) {
         var name1 = this.categoryName(a.category).toLowerCase();
         var name2 = this.categoryName(b.category).toLowerCase();

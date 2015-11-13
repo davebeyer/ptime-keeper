@@ -32,7 +32,7 @@ import {randomInt, formatDate, formatTime} from '../public/js/utils';
 
         <div [hidden]="(viewMode == 'confirmOverlay')">
 
-          <div class="row"  [hidden]="!activities.length">
+          <div class="row"  [hidden]="!actServ.hasActivities()">
             <h2 class="col-xs-9 page-title plan-title"  title="{{actServ.planDate}} Plan created at {{actServ.planTime}}"> 
               {{actServ.planDate}} Plan 
             </h2>
@@ -41,12 +41,12 @@ import {randomInt, formatDate, formatTime} from '../public/js/utils';
             </button>
           </div>
 
-          <div class="row"  [hidden]="activities.length">
+          <div class="row"  [hidden]="actServ.hasActivities()">
             <h2 class="col-xs-12 page-title"> New plan </h2>
           </div>
 
           <div class="row activity-entry" 
-              *ng-for="#act of activities" 
+              *ng-for="#act of actServ.activities" 
               [style.border-left-color]="actServ.categoryColor(act.category)">
             <div class="col-xs-4 tight">{{actServ.categoryName(act.category)}}</div>
             <div class="col-xs-5 tight">{{act.description}}</div>
@@ -60,12 +60,12 @@ import {randomInt, formatDate, formatTime} from '../public/js/utils';
             </div>
           </div>
 
-          <hr [hidden]="!activities.length" style="margin-top:30px"/>
+          <hr [hidden]="!actServ.hasActivities()" style="margin-top:30px"/>
 
           <div [hidden]="!actServ.hasCategories()">
             <div class="row form-indent">
-              <h4 class="col-xs-12 tight" [hidden]="!activities.length">Add an activity</h4>
-              <h3 class="col-xs-12 tight" [hidden]="activities.length">Add an activity</h3>
+              <h4 class="col-xs-12 tight" [hidden]="!actServ.hasActivities()">Add an activity</h4>
+              <h3 class="col-xs-12 tight" [hidden]="actServ.hasActivities()">Add an activity</h3>
             </div>
 
             <div class="row form-indent">
@@ -266,24 +266,6 @@ export class Plan  {
             _this.resetCategoryForm(true);
             _this.resetActivityForm();
         });
-    }
-
-    //
-    // Getters and Setters to ease transitioning to ActivitiesService
-    //
-
-    get plan() {
-        return this.actServ.plan;
-    }
-    set plan(newPlan : any) {
-        this.actServ.plan = newPlan;
-    }
-
-    get activities() {
-        return this.actServ.activities;
-    }
-    set activities(newAct : Array<any>) {
-        this.actServ.activities = newAct;
     }
 
     //
