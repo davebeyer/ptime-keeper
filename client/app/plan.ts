@@ -3,6 +3,8 @@
 import {Component, View}                from 'angular2/angular2';
 import {FORM_DIRECTIVES, FormBuilder, Control, ControlGroup, Validators, NgIf, NgFor} from 'angular2/angular2';
 
+import {Router}                         from 'angular2/router';
+
 import {Typeahead}         from '../components/typeahead';
 import {SaveMsg}           from '../components/savemsg';
 
@@ -20,7 +22,10 @@ import {randomInt}         from '../public/js/utils';
     directives: [Typeahead, FORM_DIRECTIVES, NgIf, NgFor],
 
     styles: [
-        ".activity-entry       {border-left: 8px solid transparent; margin: 2px 0; padding: 2px 0;}",
+        ".activity-entry .row        {border-left: 8px solid transparent; margin: 3px 0 0 0; padding: 2px 0;}",
+        ".activity-entry .info:hover {background: #eee; cursor:pointer;}",
+        ".activity-entry .editing    {margin-bottom: 20px; margin-top: 0;}",
+
         ".tight                {padding: 0 5px;}",
         ".form-indent          {margin-left: 20px; width:calc(100% - 20px)}",
         ".colored-left-border  {border-left: 8px solid white;}",
@@ -45,19 +50,34 @@ import {randomInt}         from '../public/js/utils';
             <h2 class="col-xs-12 page-title"> New plan </h2>
           </div>
 
-          <div class="row activity-entry" 
-              *ng-for="#act of actServ.activities" 
-              [style.border-left-color]="actServ.categoryColor(act.category)">
-            <div class="col-xs-4 tight">{{actServ.categoryName(act.category)}}</div>
-            <div class="col-xs-5 tight">{{act.description}}</div>
-            <div class="col-xs-2 tight">
-              <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
+          <div class="activity-entry" *ng-for="#act of actServ.activities">
+              
+            <div class="row info" [style.border-left-color]="actServ.categoryColor(act.category)" (click)="toggleEditing(act)">
+              <div class="col-xs-4 tight"><b>{{actServ.categoryName(act.category)}}</b></div>
+              <div class="col-xs-5 tight">{{act.description}}</div>
+              <div class="col-xs-2 tight">
+                <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
+              </div>
+              <div class="col-xs-1 tight">
+                <div [hidden]="true">
+                  <i class="fa fa-check"></i>
+                </div>
+              </div>
             </div>
-            <div class="col-xs-1 tight" style="padding-top:2px">
-              <a href="#">
-                <i  (click)="delActivity($event, act)" class="fa fa-remove"></i>
-              </a>
+
+            <div class="row editing" [style.border-left-color]="actServ.categoryColor(act.category)" [class.hidden]="!activityEditing[act['created']]">
+              <div class="col-xs-3 col-xs-offset-3 tight" style="padding-top:2px">
+                <button class="btn btn-primary" href="#" (click)="startActivity(act)">
+                  <i class="fa fa-play"></i> Start
+                </button>
+              </div>
+              <div class="col-xs-3 col-xs-offset-3 tight" style="padding-top:2px">
+                <button class="btn btn-default" href="#" (click)="delActivity(act)">
+                  <i class="fa fa-remove"></i> Delete
+                </button>
+              </div>
             </div>
+
           </div>
 
           <hr [hidden]="!actServ.hasActivities()" style="margin-top:30px"/>
@@ -184,7 +204,7 @@ export class Plan  {
 
     userServ         : UserService;
     fBase            : FirebaseService;
-    actServ          : ActivitiesService
+    actServ          : ActivitiesService;
     saveMsg          : SaveMsg;
 
     newCatForm       : ControlGroup;
@@ -193,13 +213,17 @@ export class Plan  {
     confirmTitle     : string;
     confirmMessage   : string;
 
+    activityEditing  : any;
+
     fb               : FormBuilder;
+    router           : Router;
 
     constructor(userServ : UserService, 
                 actServ  : ActivitiesService,
                 fb       : FormBuilder, 
                 saveMsg  : SaveMsg, 
-                fBase    : FirebaseService) {
+                fBase    : FirebaseService,
+                router   : Router) {
         console.log("plan.ts: in constructor")
         var _this = this;
 
@@ -208,9 +232,12 @@ export class Plan  {
         this.fBase    = fBase;
         this.saveMsg  = saveMsg;
         this.fb       = fb;
+        this.router   = router;
 
         this.confirmTitle      = '';
         this.confirmMessage    = '';
+
+        this.activityEditing   = {};
 
         this.newCatForm = this.fb.group({
             'name'  : ['', this.uniqueCategory.bind(this)],
@@ -433,8 +460,24 @@ export class Plan  {
         });
     }
 
-    delActivity($event, activity) {
+    toggleEditing(activity) {
+        var id = activity['created']; 
+        if (this.activityEditing[id]) {
+            this.activityEditing[id] = false;
+        } else {
+            this.activityEditing     = {};  // Close any/all others
+            this.activityEditing[id] = true;
+        }
+    }
+
+    startActivity(activity) {
+        this.actServ.setWorkActivity(activity);
+        this.router.navigate(['/Work', {state : 'start'}]); 
+    }
+
+    delActivity(activity) {
         this.actServ.delActivity(activity);
+        this.actServ.clearWorkActivity(activity);
     }
 
     //

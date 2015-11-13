@@ -53,7 +53,7 @@ export class Header {
 
     logout() {
 	this.userServ.logout();
-        this.router.navigate(['./SignIn']);    // SignIn
+        this.router.navigate(['/SignIn']);    // SignIn
     }
 }
 

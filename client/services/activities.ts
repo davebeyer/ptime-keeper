@@ -28,7 +28,8 @@ export class ActivitiesService {
 
     _notifyInit      : any;
 
-    activities       : Array<any>
+    activities       : Array<any>;
+    workActivity     : any;  // current work activity
 
     constructor(@Inject(FirebaseService) fBase    : FirebaseService,
                 @Inject(UserService)     userServ : UserService,
@@ -58,22 +59,41 @@ export class ActivitiesService {
                 }
             });
         });
-    }
 
-    resetPlan() {
-        this.plan       = null;
-        this.planDate   = '';
-        this.planTime   = '';
-        this.activities = [];
-    }
-
-    startNewPlan() {
-	this.resetPlan();
+	this.clearWorkActivity();
     }
 
     notifyInit(cb : any) {
         // TODO: consider a list of callbacks
         this._notifyInit = cb;
+    }
+
+    //
+    // Current work activity 
+    //
+
+    setWorkActivity(activity) {
+	this.workActivity = activity;
+    }
+
+    clearWorkActivity(activity?) {
+	if (!activity || (this.workActivity['created'] == activity['created'])) {
+	    this.workActivity = null;
+	}
+    }
+
+    workCategory() {
+	if (!this.workActivity) { 
+	    return '';
+	}
+
+	return this.categoryName(this.workActivity.category);
+    }
+    workDescription() {
+	if (!this.workActivity) { 
+	    return '';
+	}
+	return this.workActivity.description;
     }
 
     //
@@ -173,6 +193,17 @@ export class ActivitiesService {
     //
     // Plan handling
     //
+
+    resetPlan() {
+        this.plan       = null;
+        this.planDate   = '';
+        this.planTime   = '';
+        this.activities = [];
+    }
+
+    startNewPlan() {
+	this.resetPlan();
+    }
 
     initPlan(plan, planId) {
         var _this = this;

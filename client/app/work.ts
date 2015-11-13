@@ -1,6 +1,9 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-import {Component, View, Directive, HostListener}  from 'angular2/angular2';
+import {Component, View}                     from 'angular2/angular2';
+import {RouteParams} from 'angular2/router';
+
+import {ActivitiesService} from '../services/activities';
 
 var moment = require('moment');
 
@@ -8,7 +11,7 @@ declare var jQuery:any;
 
 
 @Component({
-    selector: 'work-block'
+    selector:   'work-block'
 })
 
 @View({
@@ -20,8 +23,8 @@ declare var jQuery:any;
         ".act-title            {}",
         ".act-descr            {opacity : 0.6;}",
         ".timer .btn           {background: transparent; border-width: 2px; transition: background .2s ease-in-out, border .2s ease-in-out;}",
-	".timer img            {opacity : 0.7;}",
-	".timer img.pulse      {opacity : 1.0;}"  /* when timer is running */
+        ".timer img            {opacity : 0.7;}",
+        ".timer img.pulse      {opacity : 1.0;}"  /* when timer is running */
     ],
 
 
@@ -53,8 +56,8 @@ declare var jQuery:any;
 
            <div class="row info-row">
             <div class="col-xs-8" [style.color]="actColor" >
-              <span class="act-title" [style.font-size]="actFont">Math:</span>
-              <span class="act-descr" [style.font-size]="descFont">Homework assignment, chapter 4.5 & 4.6</span>
+              <span class="act-title" [style.font-size]="actFont">{{actServ.workCategory()}}:</span>
+              <span class="act-descr" [style.font-size]="descFont">{{actServ.workDescription()}}</span>
             </div>
             <div class="col-xs-4 play-icons">
               <button class="btn btn-default"  [style.font-size]="actFont" [style.color]="actColor" (click)="activityFinished($event)">
@@ -70,6 +73,7 @@ declare var jQuery:any;
 })
 
 export class Work {
+    actServ    : ActivitiesService;
 
     // CSS settings
     pomHeight  : any;
@@ -91,16 +95,23 @@ export class Work {
     startTime  : any;
     timer      : number;
 
+    initState  : string;
+
     timeRem_ms = 20 * 1000; // 25 * 60 * 1000;  // 25 mins
 
-    constructor() {
+    constructor(actServ : ActivitiesService,
+                params  : RouteParams) {
         console.log("work.ts: in constructor")
+
+        this.actServ  = actServ;
 
         this.startTime = null;
         this.dispTime  = '';
         this.timer     = null;
 
         this.resizeTimer();
+
+        this.initState = params.get('state');
     }
 
     onInit() {
@@ -112,9 +123,13 @@ export class Work {
             _this.resizeTimer();
         });
 
-	// Timer starts in paused state
-	this.timerDisplay(this.timeRem_ms);
+        // Timer starts in paused state
+        this.timerDisplay(this.timeRem_ms);
         this.timer = null;
+
+        if (this.initState == 'start') {
+            this.startTimer();
+        }
     }
 
     resizeTimer() {
@@ -189,14 +204,14 @@ export class Work {
         var now:any     = new Date();
         var diff:number = now - this.startTime - 500; // 500ms rounding
 
-	this.timerDisplay(this.timeRem_ms - diff);
+        this.timerDisplay(this.timeRem_ms - diff);
     }
 
     timerDisplay(time_ms) {
         var duration, neg;
 
-	// Next lower number of seconds (e.g., -5.6 => -6)
-	time_ms = Math.floor(time_ms / 1000.0) * 1000;
+        // Next lower number of seconds (e.g., -5.6 => -6)
+        time_ms = Math.floor(time_ms / 1000.0) * 1000;
 
         if (time_ms < 0) {
             duration  = moment.duration(-time_ms);

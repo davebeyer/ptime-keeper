@@ -43,11 +43,11 @@ import {SaveMsg}           from '../components/savemsg';
 })
 
 @RouteConfig([
-    { path: '/plan',    as: 'Plan',        component: Plan },
-    { path: '/work',    as: 'Work',        component: Work },
-    { path: '/review',  as: 'Review',      component: Review },
-    { path: '/signin',  as: 'SignIn',      component: SignIn },
-    { path: '/prefs',   as: 'Preferences', component: Preferences }
+    { path: '/plan',                  as: 'Plan',        component: Plan },
+    { path: '/work/:state',           as: 'Work',        component: Work },
+    { path: '/review',                as: 'Review',      component: Review },
+    { path: '/signin',                as: 'SignIn',      component: SignIn },
+    { path: '/prefs',                 as: 'Preferences', component: Preferences }
 ])
 
 class PomodoroTimeKeeper {
