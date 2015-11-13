@@ -16,9 +16,9 @@ declare var jQuery:any;
         ".abs-center           {position:absolute; left:0; right:0; margin:0 auto;}",
         ".timer-clock          {font-size:70px; font-weight:bold;}",
         ".play-icons           {text-align:right;}",
-        ".info-row             {margin: 30px 0 0 10px; width: calc(100% - 10px); display:flex; align-items:center; border: 5px solid grey; padding: 5px 10px; border-style: inset;}",
+        ".info-row             {margin: 30px 0 0 10px; width: calc(100% - 10px); display:flex; align-items:center;}",
         ".act-title            {}",
-        ".act-descr            {color:#666;}",
+        ".act-descr            {opacity : 0.6;}",
         ".timer .btn           {background: transparent; border-width: 2px; transition: background .2s ease-in-out, border .2s ease-in-out;}"
     ],
 
@@ -48,13 +48,13 @@ declare var jQuery:any;
             </div>
           </div>
 
-           <div class="row info-row" [style.border-color]="actColor">
-            <div class="col-xs-7" >
+           <div class="row info-row">
+            <div class="col-xs-8" [style.color]="actColor" >
               <span class="act-title" [style.font-size]="actFont">Math:</span>
               <span class="act-descr" [style.font-size]="descFont">Homework assignment, chapter 4.5 & 4.6</span>
             </div>
-            <div class="col-xs-5 play-icons">
-              <button class="btn btn-default"  [style.font-size]="actFont" (click)="activityFinished($event)">
+            <div class="col-xs-4 play-icons">
+              <button class="btn btn-default"  [style.font-size]="actFont" [style.color]="actColor" (click)="activityFinished($event)">
                 <i class="fa fa-check-square"></i> Done !
               </button>
             </div>
