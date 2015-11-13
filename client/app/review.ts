@@ -13,6 +13,7 @@ declare var jQuery:any;
     template: `
         <div class="container">
           <h2 class="page-title">My work history</h2>
+          <h3 class="page-title">... coming soon, stay tuned!</h3>
         </div>
         `
 })

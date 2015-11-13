@@ -57,8 +57,8 @@ declare var jQuery:any;
               <span class="act-descr" [style.font-size]="descFont">Homework assignment, chapter 4.5 & 4.6</span>
             </div>
             <div class="col-xs-4 play-icons">
-              <button class="btn btn-default"  [style.font-size]="descFont" [style.color]="actColor" (click)="activityFinished($event)">
-                <i class="fa fa-check-square"></i> Done !
+              <button class="btn btn-default"  [style.font-size]="actFont" [style.color]="actColor" (click)="activityFinished($event)">
+                <i class="fa fa-check"></i> Done
               </button>
             </div>
           </div>
