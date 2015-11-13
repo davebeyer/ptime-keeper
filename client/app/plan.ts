@@ -247,7 +247,7 @@ export class Plan  {
     }
 
     onInit() {
-	var _this = this;
+        var _this = this;
 
         this.viewMode         = 'initializing';
 
@@ -366,22 +366,22 @@ export class Plan  {
     addCategory(formValue) {
         var _this = this;
 
-	var catEntry = {
-	    color  : formValue.color.toLowerCase(),
-	    name   : formValue.name
-	}
+        var catEntry = {
+            color  : formValue.color.toLowerCase(),
+            name   : formValue.name
+        }
 
-	this.actServ.addCategory(catEntry).then(function(newCat) {
+        this.actServ.addCategory(catEntry).then(function(newCat) {
             console.log("Successfully added work category", newCat);
 
-	    var id = Object.keys(newCat)[0]; // only one key
+            var id = Object.keys(newCat)[0]; // only one key
 
-	    // Set the category in the new activity form to this new category
-	    _this.resetActivityForm(id, true);
+            // Set the category in the new activity form to this new category
+            _this.resetActivityForm(id, true);
 
-	    _this.viewMode = 'dfltMode';
-	    _this.selectedCategory = newCat[id];
-	});
+            _this.viewMode = 'dfltMode';
+            _this.selectedCategory = newCat[id];
+        });
     }
 
     uniqueCategory (ctrl : Control) : any {
@@ -450,7 +450,7 @@ export class Plan  {
 
     confirmYes() {
         // TODO: currently, only one type of confirmation
-	this.actServ.startNewPlan();
+        this.actServ.startNewPlan();
         this.viewMode     = 'dfltMode';
     }
 
