@@ -13,7 +13,7 @@ declare var jQuery:any;
 
 export class ActivitiesService {
     NullCategory     = {name : '', color : 'transparent'};
-    categoryColors   = ['Black', 'Blue', 'Brown', 'Cyan', 'Gold', 'Grey', 'Green', 'Lime', 'Maroon', 'Orange', 'Pink', 'Purple', 'Red', 'Yellow'];
+    categoryColors   = ['Black', 'Blue', 'Brown' /*,'Cyan'*/, 'Gold', 'Grey', 'Green' /*,'Lime'*/, 'Maroon', 'Orange' /*,'Pink'*/, 'Purple', 'Red' /*,'Yellow'*/];
 
     fBase            : FirebaseService;
     userServ         : UserService;
