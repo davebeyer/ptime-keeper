@@ -2,7 +2,7 @@
 
 import {Component, View}          from 'angular2/angular2';
 
-import {UserService} from '../services/user';
+import {UserService}     from '../services/user';
 
 @Component({
     selector: 'signin'
@@ -47,7 +47,7 @@ import {UserService} from '../services/user';
                 <td colspan="2">
                   <h4 style="margin-top:40px">
                     Click on a tab below to get started!<br/>
-	            (Hint, start with "Plan" <i class="fa fa-smile-o"></i>)
+                    (Hint, start with "Plan" <i class="fa fa-smile-o"></i>)
                   </h4>
                 </td>
               </tr>
@@ -70,14 +70,15 @@ export class SignIn {
     initialized : boolean;
 
     constructor(userServ : UserService) {
+	var _this = this;
         console.log("signin.ts: in constructor")
 
-        this.userServ    = userServ;
-	this.initialized = false;
+        this.userServ       = userServ;
+        this.initialized    = false;
 
-	// Unclear how to determine when Firebase has automatically authenticated
-	// (or not) pre-signedin user, so just wait a couple secs
-	setTimeout(function() {this.initialized = true;}.bind(this), 1500);
+        // Unclear how to determine when Firebase has automatically authenticated
+        // (or not) pre-signedin user, so just wait a couple secs
+        setTimeout(function() {_this.initialized = true;}.bind(this), 1500);
     }
 
     login(provider) {

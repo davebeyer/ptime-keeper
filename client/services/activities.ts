@@ -5,6 +5,7 @@ import {Inject} from 'angular2/core';
 
 import {FirebaseService}   from './firebase';
 import {UserService}       from './user';
+import {SettingsService}   from '../services/settings';
 import {SaveMsg}           from '../components/savemsg';
 
 var moment = require('moment');
@@ -17,6 +18,7 @@ export class ActivitiesService {
 
     fBase            : FirebaseService;
     userServ         : UserService;
+    settings         : SettingsService;
     saveMsg          : SaveMsg;
 
     categories       : Array<any>;
@@ -35,12 +37,14 @@ export class ActivitiesService {
 
     constructor(@Inject(FirebaseService) fBase    : FirebaseService,
                 @Inject(UserService)     userServ : UserService,
+                @Inject(SettingsService) settings : SettingsService,
                 @Inject(SaveMsg)         saveMsg  : SaveMsg) {
         var _this = this;
         console.log("activities.ts: in ActivitiesService constructor")
 
         this.userServ   = userServ;
         this.fBase      = fBase;
+        this.settings   = settings;
 
         this.saveMsg    = saveMsg;
 
@@ -53,7 +57,9 @@ export class ActivitiesService {
 
         // Register with the authentication callback
         this.userServ.loginNotify(function() {
-            _this.getCategories().then(function() {
+            _this.settings.updateCachedSettings().then(function() {
+                return _this.getCategories();
+            }).then(function() {
                 return _this.getCurrentPlan();
             }).then(function() {
                 if (_this._notifyInit) {
@@ -79,8 +85,10 @@ export class ActivitiesService {
     }
 
     clearWorkActivity(activity?) {
-        if (!activity || (this.workActivity['created'] == activity['created'])) {
-            this.workActivity = null;
+        if (this.workActivity !== null) {
+            if (!activity || (this.workActivity['created'] == activity['created'])) {
+                this.workActivity = null;
+            }
         }
     }
 
@@ -104,7 +112,7 @@ export class ActivitiesService {
                 return;
             }
 
-	    activityId = activity['created'];
+            activityId = activity['created'];
 
             var created  = _this.fBase.dateToKey(new Date());
 
@@ -147,18 +155,18 @@ export class ActivitiesService {
     }
 
     getActivity(activityId?:string) {
-	var res;
+        var res;
         if (activityId) {
             res = this.activityDict[activityId];
         } else {
             res = this.workActivity;
         }
 
-	if (!res) {
-	    console.error("getActivity, no activity found", activityId);
-	}
+        if (!res) {
+            console.error("getActivity, no activity found", activityId);
+        }
 
-	return res;
+        return res;
     }
 
     //
@@ -169,53 +177,94 @@ export class ActivitiesService {
      * Return events list, sorted by createdDate
      */
     getEvents(activity: any) {
-	if (! ('events' in activity)) {
-	    return [];
-	} 
+        if (! ('events' in activity)) {
+            return [];
+        } 
 
-	var eventIds = Object.keys(activity['events']);
-	var events   = [];
+        var eventIds = Object.keys(activity['events']);
+        var events   = [];
 
-	for (var i = 0; i < eventIds.length; i++) {
-	    events.push(activity['events'][eventIds[i]]);
-	}
+        for (var i = 0; i < eventIds.length; i++) {
+            events.push(activity['events'][eventIds[i]]);
+        }
 
-	events.sort(this.sortEvents.bind(this));
+        events.sort(this.sortEvents.bind(this));
 
-	return events;
+        return events;
     }
 
     sortEvents(a, b) {
-	if (a['created'] < b['created']) {
-	    return -1;
-	} else {
-	    return 1;
-	}
+        if (a['created'] < b['created']) {
+            return -1;
+        } else {
+            return 1;
+        }
     }
 
     isComplete(activityId? : string) {
-	var activity = this.getActivity(activityId);
-	if (!activity) {
-	    return false;
-	}
+        var activity = this.getActivity(activityId);
+        if (!activity) {
+            return false;
+        }
 
-	var events = this.getEvents(activity);
+        var events = this.getEvents(activity);
 
-	var completed = false;
+        var completed = false;
 
-	for (var i = 0; i < events.length; i++) {
-	    switch(events[i].type) {
-	    case 'start':
-		completed = false;   // even if restarted after a complete
-		break;
-	    case 'complete':
-		completed = true;
-		break;
-	    default:
-	    }
-	}
+        for (var i = 0; i < events.length; i++) {
+            switch(events[i].type) {
+            case 'start':
+                completed = false;   // even if restarted after a complete
+                break;
+            case 'complete':
+                completed = true;
+                break;
+            default:
+            }
+        }
 
-	return completed;
+        return completed;
+    }
+
+    /**
+     * Compute estimated time remaining on this activity, in msecs
+     */
+    timeRemaining_ms(activityId? : string) {
+
+        var activity = this.getActivity(activityId);
+        if (!activity) {
+            return 0;
+        }
+
+        var events   = this.getEvents(activity);
+
+        var work_ms  = 0;
+        var start_dt = null;
+        var end_dt   = null;
+        var diff;
+
+        for (var i = 0; i < events.length; i++) {
+            switch(events[i].type) {
+            case 'start':
+                start_dt = this.fBase.keyToDate(events[i]['created']);
+                break;
+            case 'break':
+            case 'complete':
+                if (start_dt !== null) {
+                    end_dt   = this.fBase.keyToDate(events[i]['created']);
+                    diff     = end_dt - start_dt;
+                    work_ms += diff;
+                    start_dt = null;
+                }
+                break;
+            default:
+                console.error("Invalid event type in timeRemaining_ms()", activityId, events[i].type);
+            }
+        }
+
+        var estimated_ms = activity.estimated_mins * 60 * 1000;
+        
+        return estimated_ms - work_ms;
     }
 
     //
@@ -335,8 +384,8 @@ export class ActivitiesService {
         this.plan            = plan
         this.plan['created'] = planId     // convenience
 
-        var parseableDT  = planId.replace('_', '.');
-        var momDT        = moment(parseableDT);
+        var planDT       = this.fBase.keyToDate(planId);
+        var momDT        = moment(planDT);
 
         this.planDate    = momDT.format("ddd, DMMMYY");
         this.planTime    = momDT.format("h:mma");
@@ -415,6 +464,9 @@ export class ActivitiesService {
             console.error("Invalid activityId in trackActivityEvent!?", activityId);
         } else {
             var eventId = newEvent['created'];
+            if (! ('events' in activity)) {
+                activity['events'] = {};
+            }
             activity['events'][eventId] = newEvent;
         }
     }
@@ -441,13 +493,14 @@ export class ActivitiesService {
         // descr & poms
         var _this = this;
 
-        var created = this.fBase.dateToKey(new Date());
+        var created      = this.fBase.dateToKey(new Date());
+        var pomTime_mins = parseInt(this.settings.getCachedSetting('work_mins'));
 
         var newActivity = {
             created        : created,
             category       : values.categoryId,
             description    : values.description,
-            estimated_poms : values.pomodoros
+            estimated_mins : values.pomodoros * pomTime_mins
         }
 
         if (this.plan == null) {

@@ -5,10 +5,14 @@ import {Inject} from 'angular2/core';
 
 import {FirebaseService} from './firebase';
 import {UserService}     from './user';
+import {SaveMsg}         from '../components/savemsg';
 
 export class SettingsService {
     fBase    : FirebaseService;
     userServ : UserService;
+    saveMsg  : SaveMsg;
+
+    cachedSettings : any;
 
     // NOTE: Since this class doesn't have any annotations 
     //       (and thus no angular2 metadata attached by default), we need
@@ -16,10 +20,32 @@ export class SettingsService {
     //       dependency injection.
 
     constructor(@Inject(FirebaseService) fBase    : FirebaseService,
-                @Inject(UserService)     userServ : UserService) {
+                @Inject(UserService)     userServ : UserService,
+                @Inject(SaveMsg)         saveMsg  : SaveMsg) {
         console.log("settings.ts: in FirebaseService constructor");
         this.fBase    = fBase;
         this.userServ = userServ;
+	this.saveMsg  = saveMsg;
+
+        // Track up-to-date user settings
+        this.cachedSettings = null;
+    }
+
+    getCachedSetting(name) {
+        if (this.cachedSettings === null) {
+            return null;
+        }
+        return this.cachedSettings[name];
+    }
+
+    updateCachedSettings() {
+	var _this = this;
+	return new Promise(function(resolve, reject) {
+            _this.getAllSettings().then(function(settings) {
+		_this.cachedSettings = settings;
+		resolve();
+            });
+	});
     }
 
     getSetting(name) {
@@ -70,9 +96,9 @@ export class SettingsService {
                         }
                     }
                     resolve(results);
-		});
+                });
             });
-	});
+        });
     }
     
     getUserSetting(name) {
@@ -129,7 +155,10 @@ export class SettingsService {
             var dbEntry = {preferences : settingsObj};
 
             userDataRef.update(dbEntry, function() {
-                resolve();
+                _this.updateCachedSettings().then(function() {
+		    _this.saveMsg.flashMsg();
+                    resolve();
+                });
             });
         });
     }

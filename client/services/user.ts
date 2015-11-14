@@ -6,7 +6,7 @@ import {Inject} from 'angular2/core';
 import {FirebaseService} from './firebase';
 
 export class UserService {
-    fBase : FirebaseService;
+    fBase      : FirebaseService;
     
     // User Data
     isLoggedIn : boolean;
@@ -24,11 +24,12 @@ export class UserService {
     //       to use @Inject here to force metadata to be added, to support
     //       dependency injection.
 
-    constructor(@Inject(FirebaseService) fBase : FirebaseService) {
+    constructor(@Inject(FirebaseService) fBase    : FirebaseService) {
         var _this = this;
         console.log("users.ts: UserService constructor")
 
         this.fBase          = fBase;
+
         this._notifyLoginCB = null;
 
         // Initialize
@@ -162,7 +163,8 @@ export class UserService {
                     _this.lastName        = authData.google.cachedUserProfile.family_name;
                     _this.profileImageURL = authData.google.profileImageURL;
                     _this.fullName        = authData.google.cachedUserProfile.name;
-                    resolve();
+
+		    resolve();
                     return;
                 default:
                     console.error("UserService:updateUserIdentityData - Unsupported provider", provider);

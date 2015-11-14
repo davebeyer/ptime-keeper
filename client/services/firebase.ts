@@ -74,6 +74,10 @@ export class FirebaseService {
 	return dt.toISOString().replace('.', '_');
     }
 
+    keyToDate(key : string) {
+	return new Date(key.replace('_', '.'));
+    }
+
     initDB() {
         var _this = this;
 

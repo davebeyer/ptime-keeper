@@ -1,7 +1,6 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
 import {Component, View, NgIf, FORM_DIRECTIVES, FormBuilder, ControlGroup, Validators} from 'angular2/angular2';
-import {CanReuse, ComponentInstruction}   from 'angular2/router';
 
 import {SettingsService}                  from '../services/settings';
 import {SaveMsg}                          from '../components/savemsg';
@@ -48,6 +47,7 @@ import {isInteger}                        from '../public/js/validators';
             <div [hidden]="shortbreak.valid"  class="col-xs-12 bg-warning">Must be an integer number of minutes</div>
           </div>
 
+<!--
           <div class="form-group" [class.has-error]="!longbreak.valid">
             <div class="col-xs-3">
               <input type="text" class="form-control" ng-control="longBreak_mins" #longbreak="form">
@@ -57,6 +57,7 @@ import {isInteger}                        from '../public/js/validators';
           <div class="row">
             <div [hidden]="longbreak.valid"  class="col-xs-12 bg-warning">Must be an integer number of minutes</div>
           </div>
+ -->
 
           <button type="submit" class="btn btn-primary" [disabled]="!f.valid || !f.dirty">Save</button>
         </form>
@@ -65,7 +66,7 @@ import {isInteger}                        from '../public/js/validators';
 })
 
 
-export class Preferences implements CanReuse {
+export class Preferences  {
     settings        : SettingsService;
     prefsForm       : ControlGroup;
     initialized     : boolean;
@@ -138,9 +139,5 @@ export class Preferences implements CanReuse {
             console.log("Successfully updated settings");
             _this.saveMsg.flashMsg();
         });
-    }
-
-    canReuse(next: ComponentInstruction, prev: ComponentInstruction) {
-        return true;
     }
 }

@@ -110,7 +110,7 @@ export class Work {
 
     initState  : string;
 
-    timeRem_ms = 20 * 1000; // 25 * 60 * 1000;  // 25 mins
+    timeRem_ms : number;
 
     constructor(actServ    : ActivitiesService,
                 router     : Router,
@@ -140,16 +140,17 @@ export class Work {
             _this.resizeTimer();
         });
 
-        // Timer starts in paused state
-        this.timerDisplay(this.timeRem_ms);
         this.timer = null;
 
         if (this.initState == 'start') {
             this.startTimer();
-        }
+        } else {
+	    this.timeRem_ms = this.actServ.timeRemaining_ms();
+            this.timerDisplay(this.timeRem_ms);
+	}
 
         this.routerServ.subscribe('work', function(url) {
-            if (!url.startsWith('work/') && url != 'work') {
+            if (!url.toLowerCase().startsWith('work/') && url != 'work') {
                 if (_this.timer) {
                     _this.pauseTimer();
                 }
@@ -240,7 +241,9 @@ export class Work {
     startTimer() {
         var _this = this;
 
-        this.startTime = new Date();
+	this.timeRem_ms = this.actServ.timeRemaining_ms();
+
+        this.startTime  = new Date();
 
         this.timer = setInterval(function() {
             _this.updateDisplay();

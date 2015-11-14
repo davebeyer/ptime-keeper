@@ -8,6 +8,7 @@ import {Router}                         from 'angular2/router';
 import {Typeahead}         from '../components/typeahead';
 import {SaveMsg}           from '../components/savemsg';
 
+import {SettingsService}   from '../services/settings';
 import {UserService}       from '../services/user';
 import {FirebaseService}   from '../services/firebase';
 import {ActivitiesService} from '../services/activities';
@@ -59,7 +60,7 @@ declare var jQuery:any;
               <div class="col-xs-4 tight"><b>{{actServ.categoryName(act.category)}}</b></div>
               <div class="col-xs-5 tight">{{act.description}}</div>
               <div class="col-xs-2 tight">
-                <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
+                <img *ng-for="#i of pomRange(act)" src="/img/tomato-tn.png"/>
               </div>
               <div class="col-xs-1 tight">
                 <div [hidden]="!actServ.isComplete(act['created'])">
@@ -218,6 +219,7 @@ export class Plan  {
     userServ         : UserService;
     fBase            : FirebaseService;
     actServ          : ActivitiesService;
+    settings         : SettingsService;
     saveMsg          : SaveMsg;
 
     newCatForm       : ControlGroup;
@@ -236,6 +238,7 @@ export class Plan  {
                 fb       : FormBuilder, 
                 saveMsg  : SaveMsg, 
                 fBase    : FirebaseService,
+                settings : SettingsService,
                 router   : Router) {
         console.log("plan.ts: in constructor")
         var _this = this;
@@ -246,6 +249,7 @@ export class Plan  {
         this.saveMsg  = saveMsg;
         this.fb       = fb;
         this.router   = router;
+        this.settings = settings;
 
         this.confirmTitle      = '';
         this.confirmMessage    = '';
@@ -311,6 +315,13 @@ export class Plan  {
     //
     // Work category handling
     //
+
+    pomRange(activity) {
+        var est_mins     = activity.estimated_mins;
+        var pomTime_mins = parseInt(this.settings.getCachedSetting('work_mins'));
+        var numPoms      = Math.floor( (est_mins / pomTime_mins) + 0.5);
+        return this.range(numPoms);
+    }
 
     range(num) {
         var res = [];
