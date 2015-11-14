@@ -52,12 +52,12 @@ declare var jQuery:any;
 
               <div class="abs-center"  [style.bottom]="iconBottom" [hidden]="noActivity()">
                 <span [hidden]="!timer">
-                  <button (click)="pauseTimer()" class="btn btn-default" [style.font-size]="iconFont">
+                  <button (click)="pauseTimer()" class="btn btn-default" [style.font-size]="iconFont" style="padding:0 15px">
                     <i class="fa fa-pause"></i>
                   </button>
                 </span>
                 <span  [hidden]="timer">
-                  <button (click)="restartTimer($event)" class="btn btn-default" [style.font-size]="iconFont">
+                  <button (click)="restartTimer($event)" class="btn btn-default" [style.font-size]="iconFont" style="padding:0 15px">
                     <i class="fa fa-play"></i>
                   </button>
                 </span>
