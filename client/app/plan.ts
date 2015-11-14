@@ -14,6 +14,9 @@ import {ActivitiesService} from '../services/activities';
 
 import {randomInt}         from '../public/js/utils';
 
+declare var jQuery:any;
+
+
 @Component({
     selector: 'plan-block'
 })
@@ -66,13 +69,21 @@ import {randomInt}         from '../public/js/utils';
             </div>
 
             <div class="row editing" [style.border-left-color]="actServ.categoryColor(act.category)" [class.hidden]="!activityEditing[act['created']]">
-              <div class="col-xs-3 col-xs-offset-3 tight" style="padding-top:2px">
-                <button class="btn btn-primary" href="#" (click)="startActivity(act)">
+
+              <div class="col-xs-6 col-xs-offset-1 tight" style="padding-top:2px">
+                <button class="btn btn-default" [style.border-color]="actServ.categoryColor(act.category)"
+                        (click)="startActivity(act)">
                   <i class="fa fa-play"></i> Start
                 </button>
+                <button class="btn btn-default" [style.border-color]="actServ.categoryColor(act.category)"
+                        (click)="activityFinished(act)">
+                  <i class="fa fa-check"></i> Done
+                </button>
               </div>
-              <div class="col-xs-3 col-xs-offset-3 tight" style="padding-top:2px">
-                <button class="btn btn-default" href="#" (click)="delActivity(act)">
+
+              <div class="col-xs-3 col-xs-offset-2 tight" style="padding-top:2px">
+                <button class="btn btn-default" href="#" [style.border-color]="actServ.categoryColor(act.category)"
+                        (click)="delActivity(act)">
                   <i class="fa fa-remove"></i> Delete
                 </button>
               </div>
@@ -118,7 +129,7 @@ import {randomInt}         from '../public/js/utils';
                   </div>
 
                   <div class="col-xs-1 tight">
-                    <button type="submit" class="btn btn-primary" [disabled]="!fwork.valid"> + </button>
+                    <button type="submit" class="btn btn-success" [disabled]="!fwork.valid"> + </button>
                   </div>
                 </div>
 
@@ -167,7 +178,7 @@ import {randomInt}         from '../public/js/utils';
                 </div>
 
                 <div class="col-xs-1 tight">
-                  <button type="submit" class="btn btn-primary" [disabled]="!fcat.valid">+</button>
+                  <button type="submit" class="btn btn-success" [disabled]="!fcat.valid">+</button>
                 </div>
               </div>
 
@@ -186,9 +197,11 @@ import {randomInt}         from '../public/js/utils';
         <div [hidden]="viewMode != 'confirmOverlay'">
           <h2>{{confirmTitle}}</h2>
           <h5 style="margin: 15px 0 30px 0">{{confirmMessage}}</h5>
-          <button (click)="confirmYes($event)" class="btn btn-primary">Confirm</button>
+          <button (click)="confirmYes($event)" class="btn btn-success">Confirm</button>
           <button (click)="confirmNo($event)" class="btn btn-default">Cancel</button>
         </div>
+
+        <audio id="success-sound" preload="auto" src="audio/tada.mp3" type="audio/mp3"/>
 
       </div>
         `
@@ -473,6 +486,10 @@ export class Plan  {
     startActivity(activity) {
         this.actServ.setWorkActivity(activity);
         this.router.navigate(['/Work', {state : 'start'}]); 
+    }
+
+    activityFinished(activity) {
+        jQuery("#success-sound")[0].play();
     }
 
     delActivity(activity) {

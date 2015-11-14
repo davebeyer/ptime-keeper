@@ -89,11 +89,20 @@ export class ActivitiesService {
 
 	return this.categoryName(this.workActivity.category);
     }
+
     workDescription() {
 	if (!this.workActivity) { 
 	    return '';
 	}
 	return this.workActivity.description;
+    }
+
+    workColor() {
+	if (!this.workActivity) { 
+	    return 'black';
+	}
+
+	return this.categoryColor(this.workActivity.category);
     }
 
     //

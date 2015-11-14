@@ -1,7 +1,7 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
 import {Component, View}                     from 'angular2/angular2';
-import {RouteParams} from 'angular2/router';
+import {RouteParams, Router}                 from 'angular2/router';
 
 import {ActivitiesService} from '../services/activities';
 
@@ -17,7 +17,8 @@ declare var jQuery:any;
 @View({
     styles: [
         ".abs-center           {position:absolute; left:0; right:0; margin:0 auto;}",
-        ".timer-clock          {font-size:70px; font-weight:bold;}",
+        ".timer-clock          {font-weight:bold;}",
+        ".timer-message        {font-weight:bold; width:50%;}",
         ".play-icons           {text-align:right;}",
         ".info-row             {margin: 30px 0 0 10px; width: calc(100% - 10px); display:flex; align-items:center;}",
         ".act-title            {}",
@@ -34,12 +35,21 @@ declare var jQuery:any;
             <div class="col-xs-12 text-center" [style.height]="wrpHeight">
               <img class="abs-center animated"  [class.pulse]="timer" [style.height]="pomHeight" [style.width]="pomWidth"  
                    src="/img/tomato-lg.png"/>
-              <div class="abs-center"  [style.bottom]="tmrBottom">
+
+              <div class="abs-center timer-message" [hidden]="!noActivity()"
+                   [style.font-size]="actFont" [style.bottom]="tmrBottom">
+	        Go to the <a href="#" (click)="gotoPlan()">Plan </a> page <br/>
+	        to select an activity<br/>
+	        to work on.
+              </div>
+
+              <div class="abs-center"  [style.bottom]="tmrBottom" [hidden]="noActivity()">
                 <span class="timer-clock" [style.font-size]="tmrFont" [style.color]="tmrColor">
                   {{dispTime}}
                 </span>
               </div>
-              <div class="abs-center"  [style.bottom]="iconBottom">
+
+              <div class="abs-center"  [style.bottom]="iconBottom" [hidden]="noActivity()">
                 <span [hidden]="!timer">
                   <button (click)="pauseTimer($event)" class="btn btn-default" [style.font-size]="iconFont">
                     <i class="fa fa-pause"></i>
@@ -51,16 +61,17 @@ declare var jQuery:any;
                   </button>
                 </span>
               </div>
+
             </div>
           </div>
 
-           <div class="row info-row">
-            <div class="col-xs-8" [style.color]="actColor" >
+          <div class="row info-row">
+            <div class="col-xs-8" [style.color]="actServ.workColor()" [hidden]="noActivity()">
               <span class="act-title" [style.font-size]="actFont">{{actServ.workCategory()}}:</span>
               <span class="act-descr" [style.font-size]="descFont">{{actServ.workDescription()}}</span>
             </div>
-            <div class="col-xs-4 play-icons">
-              <button class="btn btn-default"  [style.font-size]="actFont" [style.color]="actColor" (click)="activityFinished($event)">
+            <div class="col-xs-4 play-icons" [hidden]="noActivity()">
+              <button class="btn btn-default"  [style.font-size]="actFont" [style.color]="actServ.workColor()" (click)="activityFinished($event)">
                 <i class="fa fa-check"></i> Done
               </button>
             </div>
@@ -74,6 +85,7 @@ declare var jQuery:any;
 
 export class Work {
     actServ    : ActivitiesService;
+    router     : Router;
 
     // CSS settings
     pomHeight  : any;
@@ -88,7 +100,6 @@ export class Work {
     iconFont   : any;
     descFont   : any;
     actFont    : any;
-    actColor   = "blue";
 
     // Timer vars
     dispTime   : string;
@@ -100,10 +111,12 @@ export class Work {
     timeRem_ms = 20 * 1000; // 25 * 60 * 1000;  // 25 mins
 
     constructor(actServ : ActivitiesService,
+		router  : Router,
                 params  : RouteParams) {
         console.log("work.ts: in constructor")
 
-        this.actServ  = actServ;
+        this.actServ   = actServ;
+	this.router    = router;
 
         this.startTime = null;
         this.dispTime  = '';
@@ -130,6 +143,14 @@ export class Work {
         if (this.initState == 'start') {
             this.startTimer();
         }
+    }
+
+    noActivity() {
+	return (this.actServ.workActivity === null);
+    }
+
+    gotoPlan() {
+	this.router.navigate(['/Plan']);
     }
 
     resizeTimer() {

@@ -44,6 +44,16 @@ body {
           animation-name: pulse;
 }
 
+/*
+ * Make something unselectable
+ */ 
+.unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
 
 /* CSS tweaks for small displays */
 @media all and (max-width : 400px) {
