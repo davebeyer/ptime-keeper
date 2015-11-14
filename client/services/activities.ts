@@ -29,6 +29,8 @@ export class ActivitiesService {
     _notifyInit      : any;
 
     activities       : Array<any>;
+    activityDict     : any;
+
     workActivity     : any;  // current work activity
 
     constructor(@Inject(FirebaseService) fBase    : FirebaseService,
@@ -42,7 +44,7 @@ export class ActivitiesService {
 
         this.saveMsg    = saveMsg;
 
-	this.resetPlan();
+        this.resetPlan();
 
         this.categories       = [];
         this.categoryDict     = {};
@@ -60,7 +62,7 @@ export class ActivitiesService {
             });
         });
 
-	this.clearWorkActivity();
+        this.clearWorkActivity();
     }
 
     notifyInit(cb : any) {
@@ -73,36 +75,147 @@ export class ActivitiesService {
     //
 
     setWorkActivity(activity) {
-	this.workActivity = activity;
+        this.workActivity = activity;
     }
 
     clearWorkActivity(activity?) {
-	if (!activity || (this.workActivity['created'] == activity['created'])) {
-	    this.workActivity = null;
-	}
+        if (!activity || (this.workActivity['created'] == activity['created'])) {
+            this.workActivity = null;
+        }
+    }
+
+    addActivityEvent(eventType:string, activityId?:string) {
+        var _this = this;
+
+        return new Promise(function(resolve, reject) {
+            eventType = eventType.toLowerCase();
+
+            if (['start', 'break', 'complete'].indexOf(eventType) == -1) {
+                console.error("Invalid event type for addActivityEvent", eventType);
+                reject("Invalid event type: " + eventType);
+                return;
+            }
+
+            var activity = _this.getActivity(activityId);
+
+            if (!activity) {
+                console.error("addActivityEvent with no active workActivity");
+                reject("No active work activity");
+                return;
+            }
+
+	    activityId = activity['created'];
+
+            var created  = _this.fBase.dateToKey(new Date());
+
+            var newEvent = {
+                created    : created,
+                type       : eventType
+            };
+
+            var path = 'activities/' + activityId + '/events/' + created;
+
+            _this.userServ.updateUserData(newEvent, path).then(function() {
+                _this.saveMsg.flashMsg();
+                _this.trackActivityEvent(activityId, newEvent);
+                resolve();
+            });
+        });
     }
 
     workCategory() {
-	if (!this.workActivity) { 
-	    return '';
-	}
+        if (!this.workActivity) { 
+            return '';
+        }
 
-	return this.categoryName(this.workActivity.category);
+        return this.categoryName(this.workActivity.category);
     }
 
     workDescription() {
-	if (!this.workActivity) { 
-	    return '';
-	}
-	return this.workActivity.description;
+        if (!this.workActivity) { 
+            return '';
+        }
+        return this.workActivity.description;
     }
 
     workColor() {
-	if (!this.workActivity) { 
-	    return 'black';
+        if (!this.workActivity) { 
+            return 'black';
+        }
+
+        return this.categoryColor(this.workActivity.category);
+    }
+
+    getActivity(activityId?:string) {
+	var res;
+        if (activityId) {
+            res = this.activityDict[activityId];
+        } else {
+            res = this.workActivity;
+        }
+
+	if (!res) {
+	    console.error("getActivity, no activity found", activityId);
 	}
 
-	return this.categoryColor(this.workActivity.category);
+	return res;
+    }
+
+    //
+    // Activity progess status
+    //
+
+    /**
+     * Return events list, sorted by createdDate
+     */
+    getEvents(activity: any) {
+	if (! ('events' in activity)) {
+	    return [];
+	} 
+
+	var eventIds = Object.keys(activity['events']);
+	var events   = [];
+
+	for (var i = 0; i < eventIds.length; i++) {
+	    events.push(activity['events'][eventIds[i]]);
+	}
+
+	events.sort(this.sortEvents.bind(this));
+
+	return events;
+    }
+
+    sortEvents(a, b) {
+	if (a['created'] < b['created']) {
+	    return -1;
+	} else {
+	    return 1;
+	}
+    }
+
+    isComplete(activityId? : string) {
+	var activity = this.getActivity(activityId);
+	if (!activity) {
+	    return false;
+	}
+
+	var events = this.getEvents(activity);
+
+	var completed = false;
+
+	for (var i = 0; i < events.length; i++) {
+	    switch(events[i].type) {
+	    case 'start':
+		completed = false;   // even if restarted after a complete
+		break;
+	    case 'complete':
+		completed = true;
+		break;
+	    default:
+	    }
+	}
+
+	return completed;
     }
 
     //
@@ -207,11 +320,13 @@ export class ActivitiesService {
         this.plan       = null;
         this.planDate   = '';
         this.planTime   = '';
-        this.activities = [];
+
+        this.activities   = [];
+        this.activityDict = {};
     }
 
     startNewPlan() {
-	this.resetPlan();
+        this.resetPlan();
     }
 
     initPlan(plan, planId) {
@@ -244,8 +359,9 @@ export class ActivitiesService {
         return new Promise(function(resolve, reject) {
             _this.userServ.getUserData('plans', {limitToLast : true}).then(function(value) {
                 if (!value) {
-                    _this.plan        = null;
-                    _this.activities  = [];
+                    _this.plan         = null;
+                    _this.activities   = [];
+                    _this.activityDict = {};
                     resolve(_this.plan);
                 } else {
                     var planId = Object.keys(value)[0];  // should only be one key
@@ -257,13 +373,14 @@ export class ActivitiesService {
 
                     _this.userServ.getUserActivitiesForPlan(planId).then(function(value) {
                         if (value) {
-                            _this.activities = [];
+                            _this.activities   = [];
+                            _this.activityDict = {};
 
                             var activity;
                             var ids = Object.keys(value);
 
                             for (var i=0; i < ids.length; i++) {
-                                _this.trackActivity(value[ids[i]]);
+                                _this.trackActivity(ids[i], value[ids[i]]);
                             }
                             _this.activities.sort(_this.sortActivities.bind(_this));
                             console.log("getCurrentActivities: current activities: ", _this.activities);
@@ -287,8 +404,19 @@ export class ActivitiesService {
     // Activities handling
     //
 
-    trackActivity(info) {
+    trackActivity(id, info) {
         this.activities.push(info);        
+        this.activityDict[id] = info;
+    }
+
+    trackActivityEvent(activityId, newEvent) {
+        var activity = this.activityDict[activityId];
+        if (!activity) {
+            console.error("Invalid activityId in trackActivityEvent!?", activityId);
+        } else {
+            var eventId = newEvent['created'];
+            activity['events'][eventId] = newEvent;
+        }
     }
 
     hasActivities() {
@@ -316,8 +444,8 @@ export class ActivitiesService {
         var created = this.fBase.dateToKey(new Date());
 
         var newActivity = {
-            category       : values.categoryId,
             created        : created,
+            category       : values.categoryId,
             description    : values.description,
             estimated_poms : values.pomodoros
         }
@@ -354,7 +482,7 @@ export class ActivitiesService {
             // _this.userServ.updateUserData(entry, 'activities').then(function() {
             _this.userServ.updateUserData(userUpdate).then(function() {
                 _this.saveMsg.flashMsg();
-                _this.trackActivity(newActivity);
+                _this.trackActivity(created, newActivity);
                 _this.activities.sort(_this.sortActivities.bind(_this));
                 resolve();
             });

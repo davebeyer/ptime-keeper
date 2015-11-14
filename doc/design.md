@@ -119,7 +119,7 @@ Saves data in the cloud, but also works offline
                 * events
                     * id <created datetime>
                         * created : <datetime>
-                        * eventType (Start, Resume, Progress, Break, Complete)
+                        * type    : Start, Break, Complete
 
         * Preferences
             * work_mins

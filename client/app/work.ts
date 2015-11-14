@@ -38,9 +38,9 @@ declare var jQuery:any;
 
               <div class="abs-center timer-message" [hidden]="!noActivity()"
                    [style.font-size]="actFont" [style.bottom]="tmrBottom">
-	        Go to the <a href="#" (click)="gotoPlan()">Plan </a> page <br/>
-	        to select an activity<br/>
-	        to work on.
+                Go to the <a href="#" (click)="gotoPlan()">Plan </a> page <br/>
+                to select an activity<br/>
+                to work on.
               </div>
 
               <div class="abs-center"  [style.bottom]="tmrBottom" [hidden]="noActivity()">
@@ -111,12 +111,12 @@ export class Work {
     timeRem_ms = 20 * 1000; // 25 * 60 * 1000;  // 25 mins
 
     constructor(actServ : ActivitiesService,
-		router  : Router,
+                router  : Router,
                 params  : RouteParams) {
         console.log("work.ts: in constructor")
 
         this.actServ   = actServ;
-	this.router    = router;
+        this.router    = router;
 
         this.startTime = null;
         this.dispTime  = '';
@@ -146,12 +146,16 @@ export class Work {
     }
 
     noActivity() {
-	return (this.actServ.workActivity === null);
+        return (this.actServ.workActivity === null);
     }
 
     gotoPlan() {
-	this.router.navigate(['/Plan']);
+        this.router.navigate(['/Plan']);
     }
+
+    //
+    // Timer display
+    //
 
     resizeTimer() {
         var winHeight = jQuery(window).height();
@@ -190,37 +194,6 @@ export class Work {
         console.log("New height", height);
     }
 
-    pauseTimer($event) {
-        $event.preventDefault();
-
-        if (this.timer) {
-            clearTimeout(this.timer);
-            this.timer = null;
-        }
-        this.updateDisplay();
-
-        var now:any     = new Date();
-        var diff:number = now - this.startTime;
-
-        this.timeRem_ms -= diff;
-    }
-
-    restartTimer() {
-        this.startTimer();
-    }
-
-    startTimer() {
-        var _this = this;
-
-        this.startTime = new Date();
-
-        this.timer = setInterval(function() {
-            _this.updateDisplay();
-        }, 1000);
-
-        this.updateDisplay();
-    }
-
     updateDisplay() {
         var now:any     = new Date();
         var diff:number = now - this.startTime - 500; // 500ms rounding
@@ -247,9 +220,53 @@ export class Work {
         this.dispTime = neg + moment.utc(duration.asMilliseconds()).format("mm:ss")
     }
 
+    //
+    // Start, restart, pause, finished
+    //
+
+    startTimer() {
+        var _this = this;
+
+        this.startTime = new Date();
+
+        this.timer = setInterval(function() {
+            _this.updateDisplay();
+        }, 1000);
+
+        this.updateDisplay();
+
+        this.actServ.addActivityEvent('start');
+    }
+
+    restartTimer() {
+        this.startTimer();
+    }
+
+    pauseTimer($event, options?) {
+        if (!options) { options = {}; }
+
+        $event.preventDefault();
+
+        if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+        }
+        this.updateDisplay();
+
+        var now:any     = new Date();
+        var diff:number = now - this.startTime;
+
+        this.timeRem_ms -= diff;
+
+        if (!options.skipEvent) {
+            this.actServ.addActivityEvent('break');
+        }
+    }
+
     activityFinished($event) {
         $event.preventDefault();
-        this.pauseTimer($event);
+        this.pauseTimer($event, {skipEvent : true});
+        this.actServ.addActivityEvent('complete');
         jQuery("#success-sound")[0].play();
     }
 }

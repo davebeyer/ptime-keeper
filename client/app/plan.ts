@@ -62,7 +62,7 @@ declare var jQuery:any;
                 <img *ng-for="#i of range(act.estimated_poms)" src="/img/tomato-tn.png"/>
               </div>
               <div class="col-xs-1 tight">
-                <div [hidden]="true">
+                <div [hidden]="!actServ.isComplete(act['created'])">
                   <i class="fa fa-check"></i>
                 </div>
               </div>
@@ -490,6 +490,7 @@ export class Plan  {
 
     activityFinished(activity) {
         jQuery("#success-sound")[0].play();
+        this.actServ.addActivityEvent('complete', activity['created']);
     }
 
     delActivity(activity) {
