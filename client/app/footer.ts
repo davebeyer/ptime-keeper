@@ -5,6 +5,7 @@ import {Router, RouterLink}       from 'angular2/router';
 
 import {SaveMsg}           from '../components/savemsg';
 import {UserService}       from '../services/user';
+import {RouterService}     from '../services/router';
 
 @Component({
     selector: 'footer'
@@ -35,36 +36,41 @@ import {UserService}       from '../services/user';
           <save-msg></save-msg>
         </nav>
       </div>
-	`,
+        `,
 
     styles: [
-	`save-msg {
-	    position: absolute;
-	    right: 20px;
-	    bottom: 5px;
-	}`
+        `save-msg {
+            position: absolute;
+            right: 20px;
+            bottom: 5px;
+        }`
     ]
 
 })
 
 export class Footer {
     userServ        : UserService;
+    routerServ      : RouterService;
     router          : Router;
+
     currentTab      : string;
 
-    constructor(userServ : UserService, router : Router) {
+    constructor(userServ   : UserService, 
+		routerServ : RouterService,
+		router     : Router) {
         console.log("footer.ts: in constructor")
-	this.userServ   = userServ;
+        this.userServ   = userServ;
         this.router     = router;
+	this.routerServ = routerServ;
         this.currentTab = '';
     }
 
     onInit() {
-	var _this = this;
-        this.router.subscribe(function(url) {
-	    // strange(?) that router emits an url and not 
-	    // a more parseable instruction
-	    _this.currentTab = url;
+        var _this = this;
+        this.routerServ.subscribe('footer', function(url) {
+            // strange(?) that router emits an url and not 
+            // a more parseable instruction
+            _this.currentTab = url;
             console.log("router navigated to", url);
         });
     }

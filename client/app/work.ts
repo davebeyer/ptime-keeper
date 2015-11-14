@@ -4,6 +4,7 @@ import {Component, View}                     from 'angular2/angular2';
 import {RouteParams, Router}                 from 'angular2/router';
 
 import {ActivitiesService} from '../services/activities';
+import {RouterService}     from '../services/router';
 
 var moment = require('moment');
 
@@ -51,7 +52,7 @@ declare var jQuery:any;
 
               <div class="abs-center"  [style.bottom]="iconBottom" [hidden]="noActivity()">
                 <span [hidden]="!timer">
-                  <button (click)="pauseTimer($event)" class="btn btn-default" [style.font-size]="iconFont">
+                  <button (click)="pauseTimer()" class="btn btn-default" [style.font-size]="iconFont">
                     <i class="fa fa-pause"></i>
                   </button>
                 </span>
@@ -86,6 +87,7 @@ declare var jQuery:any;
 export class Work {
     actServ    : ActivitiesService;
     router     : Router;
+    routerServ : RouterService;
 
     // CSS settings
     pomHeight  : any;
@@ -110,17 +112,19 @@ export class Work {
 
     timeRem_ms = 20 * 1000; // 25 * 60 * 1000;  // 25 mins
 
-    constructor(actServ : ActivitiesService,
-                router  : Router,
-                params  : RouteParams) {
+    constructor(actServ    : ActivitiesService,
+                router     : Router,
+		routerServ : RouterService,
+                params     : RouteParams) {
         console.log("work.ts: in constructor")
 
-        this.actServ   = actServ;
-        this.router    = router;
+        this.actServ    = actServ;
+        this.router     = router;
+	this.routerServ = routerServ;
 
-        this.startTime = null;
-        this.dispTime  = '';
-        this.timer     = null;
+        this.startTime  = null;
+        this.dispTime   = '';
+        this.timer      = null;
 
         this.resizeTimer();
 
@@ -143,6 +147,15 @@ export class Work {
         if (this.initState == 'start') {
             this.startTimer();
         }
+
+        this.routerServ.subscribe('work', function(url) {
+            if (!url.startsWith('work/') && url != 'work') {
+                if (_this.timer) {
+                    _this.pauseTimer();
+                }
+            }
+            console.log("In Work: router navigating to", url);
+        });
     }
 
     noActivity() {
@@ -242,10 +255,8 @@ export class Work {
         this.startTimer();
     }
 
-    pauseTimer($event, options?) {
+    pauseTimer(options?) {
         if (!options) { options = {}; }
-
-        $event.preventDefault();
 
         if (this.timer) {
             clearTimeout(this.timer);
@@ -265,7 +276,7 @@ export class Work {
 
     activityFinished($event) {
         $event.preventDefault();
-        this.pauseTimer($event, {skipEvent : true});
+        this.pauseTimer({skipEvent : true});
         this.actServ.addActivityEvent('complete');
         jQuery("#success-sound")[0].play();
     }

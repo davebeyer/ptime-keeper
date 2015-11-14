@@ -22,6 +22,7 @@ import {UserService}       from '../services/user';
 import {FirebaseService}   from '../services/firebase';
 import {SettingsService}   from '../services/settings';
 import {ActivitiesService} from '../services/activities';
+import {RouterService}     from '../services/router';
 
 import {SaveMsg}           from '../components/savemsg';
 
@@ -90,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function(){
                   FirebaseService,
 		  ActivitiesService,
 		  SettingsService,
+		  RouterService,
 		  SaveMsg,
                   ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
