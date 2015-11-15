@@ -104,6 +104,12 @@ export class Timer {
     stop() {
 	this.pause();
 	this.accum_ms = 0;
+	this.start_dt = null;
+	this.stop_dt  = null;
+    }
+    
+    reset() {
+	this.stop();
     }
 }
 

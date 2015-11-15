@@ -138,7 +138,7 @@ declare var jQuery:any;
                   <div class="col-xs-1 tight">
                     <button type="submit" class="btn btn-success" [disabled]="!fwork.valid">
                       + 
-	            </button>
+                    </button>
                   </div>
                 </div>
 
@@ -348,7 +348,7 @@ export class Plan  {
         var $title = jQuery(".plan-title");
 
         var title    = this.actServ.planDate + " Plan created at " + this.actServ.planTime;
-	var curTitle = $title.attr('data-original-title');
+        var curTitle = $title.attr('data-original-title');
 
         if (curTitle  === undefined) {
             $title.tooltip({placement: 'top', delay : 500});
@@ -555,7 +555,7 @@ export class Plan  {
     }
 
     isActCompleted(activity) {
-	return this.actServ.isComplete(activity['created']);
+        return this.actServ.isComplete(activity['created']);
     }
 
     //

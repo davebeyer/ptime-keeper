@@ -133,10 +133,11 @@ export class Work {
     // Timer vars
     workTmr    : Timer;
     dispTime   : string;
+    work_ms    : number;
     timeRem_ms : number;
 
     breakTmr    : Timer;
-    breakRem_ms : number;
+    break_ms    : number;
     dispBreak   : string;
 
     initState  : string;
@@ -144,17 +145,17 @@ export class Work {
 
     constructor(actServ    : ActivitiesService,
                 router     : Router,
-		routerServ : RouterService,
-		timerServ  : TimerService,
+                routerServ : RouterService,
+                timerServ  : TimerService,
                 settings   : SettingsService,
                 params     : RouteParams) {
         console.log("work.ts: in constructor")
 
         this.actServ    = actServ;
         this.router     = router;
-	this.routerServ = routerServ;
-	this.timerServ  = timerServ;
-	this.settings   = settings;
+        this.routerServ = routerServ;
+        this.timerServ  = timerServ;
+        this.settings   = settings;
 
         this.dispTime   = '';
         this.workTmr      = null;
@@ -176,30 +177,41 @@ export class Work {
             _this.resizeTimer();
         });
 
-	// Add tooltips for all titled elements
+        // Add tooltips for all titled elements
         jQuery("[title]").tooltip({placement: 'top', delay : 500});
 
-	this.workTmr = this.timerServ.getTimer('work', function(type, time_ms) {
-	    _this.updateDisplay(time_ms);
-	});
+        this.workTmr = this.timerServ.getTimer('work', function(type, time_ms) {
+            _this.updateDisplay(time_ms);
+        });
 
-	this.breakTmr = this.timerServ.getTimer('break', function(type, time_ms) {
-	    _this.updateBreakDisplay(time_ms);
-	});
+        this.breakTmr = this.timerServ.getTimer('break', function(type, time_ms) {
+            _this.updateBreakDisplay(time_ms);
+        });
 
-	this.breakRem_ms = this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000;
+	// Reset timers when returning to this view, which means that the user
+	// should finish their pomodoro before leaving view!
+	this.workTmr.reset();
+	this.breakTmr.reset();
+
+        this.work_ms  = this.settings.getCachedSetting('work_mins') * 60 * 1000;
+        this.break_ms = this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000;
+
+	this.timeRem_ms = null;
 
         if (this.initState == 'start') {
             this.startTimer();
         } else if (this.isActivity()) {
-	    this.timeRem_ms = this.actServ.timeRemaining_ms(); // + 500; // 500ms for rounding
-            this.dispTime = this.timerDisplay(this.timeRem_ms);
-	}
+	    this.timeRem_ms = this.workTimeRemaining_ms();
+	    this.updateDisplay();
+        }
 
         this.routerServ.subscribe('work', function(url) {
             if (!url.toLowerCase().startsWith('work/') && url != 'work') {
-		_this.pauseTimer({notABreak : true});
-		_this.breakTmr.pause();
+                if (_this.breakTmr.isRunning() || _this.workTmr.isRunning()) {
+                    _this.leaveActivity('later');
+                } else {
+                    _this.leaveActivity();
+                }
             }
             console.log("In Work: router navigating to", url);
         });
@@ -259,17 +271,17 @@ export class Work {
     }
 
     updateDisplay(diff_ms?:number) {
-	if (diff_ms === undefined) {
-	    diff_ms = this.workTmr.time_ms();
-	}
+        if (diff_ms === undefined) {
+            diff_ms = this.workTmr.time_ms();
+        }
         this.dispTime = this.timerDisplay(this.timeRem_ms - diff_ms);
     }
 
     updateBreakDisplay(diff_ms?:number) {
-	if (diff_ms === undefined) {
-	    diff_ms = this.breakTmr.time_ms();
-	}
-        this.dispBreak = this.timerDisplay(this.breakRem_ms - diff_ms);
+        if (diff_ms === undefined) {
+            diff_ms = this.breakTmr.time_ms();
+        }
+        this.dispBreak = this.timerDisplay(this.break_ms - diff_ms);
     }
 
     timerDisplay(time_ms) {
@@ -295,33 +307,42 @@ export class Work {
     // Start, restart, pause, finished
     //
 
-    startTimer() {
+    workTimeRemaining_ms() {
+        var res = this.actServ.timeRemaining_ms();
+	return Math.min(res, this.work_ms);
+    }
+
+    startTimer(options?:any) {
+	if (!options) { options = {}; }
+
         var _this = this;
 
-	this.timeRem_ms = this.actServ.timeRemaining_ms(); // + 500;  // 500ms for rounding
+	if (!options.restart || !this.timeRem_ms) {
+	    this.timeRem_ms = this.workTimeRemaining_ms();
+	}
 
-	this.workTmr.start();
-	this.breakTmr.pause();
+        this.workTmr.start();
+        this.breakTmr.pause();
 
         this.updateDisplay();
         this.actServ.addActivityEvent('start');
     }
 
     restartTimer() {
-        this.startTimer();
+        this.startTimer({restart : true});
     }
 
     pauseTimer(options?) {
         if (!options) { options = {}; }
 
-	// Get time before stopping timer
-	var diff_ms = this.workTmr.time_ms();
+        // Get time before stopping timer
+        var diff_ms = this.workTmr.time_ms();
 
-	this.workTmr.stop();
-	if (!options.notABreak) {
-	    this.breakTmr.start();
-	    this.updateBreakDisplay();
-	}
+        this.workTmr.stop();
+        if (!options.notABreak) {
+            this.breakTmr.start();
+            this.updateBreakDisplay();
+        }
 
         this.updateDisplay(diff_ms);
 
@@ -332,27 +353,32 @@ export class Work {
         }
     }
 
-    activityFinished() {
-	var _this = this;
-
+    leaveActivity(eventType?:string) {
         this.pauseTimer({skipEvent : true, notABreak : true});
-        this.actServ.addActivityEvent('complete');
+        this.breakTmr.stop();
+        if (eventType) {
+            this.actServ.addActivityEvent(eventType);
+        }
+    }
+
+    activityFinished() {
+        var _this = this;
+
+        this.leaveActivity('complete');
         jQuery("#success-sound")[0].play();
 
-	setTimeout(function() {
-	    _this.gotoPlan();
-	}, 1700);  // time for sound to play
+        setTimeout(function() {
+            _this.gotoPlan();
+        }, 1700);  // time for sound to play
     }
 
     activityLater() {
-	var _this = this;
+        var _this = this;
 
-        this.pauseTimer({skipEvent : true, notABreak : true});
-	this.breakTmr.stop();
-        this.actServ.addActivityEvent('later');
+        this.leaveActivity('later');
 
-	setTimeout(function() {
-	    _this.gotoPlan();
-	}, 700);
+        setTimeout(function() {
+            _this.gotoPlan();
+        }, 700);
     }
 }
