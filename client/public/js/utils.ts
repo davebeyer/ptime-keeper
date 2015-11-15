@@ -1,6 +1,6 @@
 /// <reference path="../../../typings/tsd.d.ts" />
 
-////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //
 // String & formatting utilities
 //
@@ -93,9 +93,9 @@ export function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
-//
-// Format number with comma separators
-//
+/**
+ * Format number with comma separators
+ */
 
 export function formatNumber(x) {
     try {

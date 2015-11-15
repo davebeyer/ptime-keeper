@@ -202,7 +202,7 @@ declare var jQuery:any;
           <button (click)="confirmNo($event)" class="btn btn-default">Cancel</button>
         </div>
 
-        <audio id="success-sound" preload="auto" src="audio/tada.mp3" type="audio/mp3"/>
+        <audio id="success-sound" preload="auto" src="audio/completed1.mp3" type="audio/mp3"/>
 
       </div>
         `

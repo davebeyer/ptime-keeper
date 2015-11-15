@@ -23,6 +23,7 @@ import {FirebaseService}   from '../services/firebase';
 import {SettingsService}   from '../services/settings';
 import {ActivitiesService} from '../services/activities';
 import {RouterService}     from '../services/router';
+import {TimerService}      from '../services/timer';
 
 import {SaveMsg}           from '../components/savemsg';
 
@@ -92,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		  ActivitiesService,
 		  SettingsService,
 		  RouterService,
+		  TimerService,
 		  SaveMsg,
                   ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})

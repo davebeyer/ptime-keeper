@@ -1,12 +1,12 @@
-# Study Tracker (study-tracker)
+# Pomodoro Time Keeper (ptime-keeper)
 
 ## Build instructions
 
 To clone and build, do:
 
 ```
-git clone  https://github.com/davebeyer/study-tracker
-cd study-tracker
+git clone  https://github.com/davebeyer/ptime-keeper
+cd ptime-keeper
 tsd install
 npm install
 ```
@@ -34,6 +34,25 @@ Then you should be able to visit:
 ```
 http://localhost:8095
 ```
+
+## Code documentation
+
+Using the [Typedoc tool](http://typedoc.io/guides/usage.html).
+
+To generate the source code documentation:
+
+```
+npm run doc
+```
+
+or, do the following:
+
+```
+typedoc --experimentalDecorators  --target es5 --module commonjs --out doc/code client/app/main.ts
+```
+
+Then, open doc/code/index.html in the browser.
+
 
 ## Technologies Employed
 

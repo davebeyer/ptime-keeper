@@ -78,7 +78,7 @@ declare var jQuery:any;
             </div>
           </div>
 
-          <audio id="success-sound" preload="auto" src="audio/tada.mp3" type="audio/mp3"/>
+          <audio id="success-sound" preload="auto" src="audio/completed1.mp3" type="audio/mp3"/>
 
         </div>
         `

@@ -71,6 +71,10 @@ export class ActivitiesService {
         this.clearWorkActivity();
     }
 
+    /**
+     * Allows registering a function to be called when this service completes initialization.
+     */
+
     notifyInit(cb : any) {
         // TODO: consider a list of callbacks
         this._notifyInit = cb;
