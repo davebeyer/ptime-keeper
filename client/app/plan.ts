@@ -46,7 +46,7 @@ declare var jQuery:any;
               {{actServ.planDate}} Plan 
             </h2>
             <button (click)="startNewPlan($event)" class="col-xs-3 btn btn-default" 
-                    title="Set this plan aside and start a new Plan">
+                    title="Set this plan aside and start a new plan">
               New plan
             </button>
           </div>

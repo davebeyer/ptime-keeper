@@ -198,7 +198,8 @@ export class Work {
 
         this.routerServ.subscribe('work', function(url) {
             if (!url.toLowerCase().startsWith('work/') && url != 'work') {
-		_this.pauseTimer();
+		_this.pauseTimer({notABreak : true});
+		_this.breakTmr.pause();
             }
             console.log("In Work: router navigating to", url);
         });
