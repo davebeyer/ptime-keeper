@@ -49,6 +49,7 @@ export class RouterService {
 
     subscribe(subId: string, cb : any) {
         // Use a dictionary to overwrite possible duplicate subscriptions
+	// (E.g., if a page/view is revisted, the CB function address may change
         this.subscribers[subId] = cb;
     }
 }

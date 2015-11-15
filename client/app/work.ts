@@ -3,8 +3,9 @@
 import {Component, View}                     from 'angular2/angular2';
 import {RouteParams, Router}                 from 'angular2/router';
 
-import {ActivitiesService} from '../services/activities';
-import {RouterService}     from '../services/router';
+import {ActivitiesService}    from '../services/activities';
+import {RouterService}        from '../services/router';
+import {TimerService, Timer}  from '../services/timer';
 
 var moment = require('moment');
 
@@ -34,7 +35,7 @@ declare var jQuery:any;
         <div class="container">
           <div class="row timer">
             <div class="col-xs-12 text-center" [style.height]="wrpHeight">
-              <img class="abs-center animated"  [class.pulse]="timer" [style.height]="pomHeight" [style.width]="pomWidth"  
+              <img class="abs-center animated"  [class.pulse]="timer.isRunning()" [style.height]="pomHeight" [style.width]="pomWidth"  
                    src="/img/tomato-lg.png"/>
 
               <div class="abs-center timer-message" [hidden]="!noActivity()"
@@ -51,12 +52,12 @@ declare var jQuery:any;
               </div>
 
               <div class="abs-center"  [style.bottom]="iconBottom" [hidden]="noActivity()">
-                <span [hidden]="!timer">
+                <span [hidden]="!timer.isRunning()">
                   <button (click)="pauseTimer()" class="btn btn-default" [style.font-size]="iconFont" style="padding:0 15px">
                     <i class="fa fa-pause"></i>
                   </button>
                 </span>
-                <span  [hidden]="timer">
+                <span  [hidden]="timer.isRunning()">
                   <button (click)="restartTimer($event)" class="btn btn-default" [style.font-size]="iconFont" style="padding:0 15px">
                     <i class="fa fa-play"></i>
                   </button>
@@ -88,6 +89,7 @@ export class Work {
     actServ    : ActivitiesService;
     router     : Router;
     routerServ : RouterService;
+    timerServ  : TimerService;
 
     // CSS settings
     pomHeight  : any;
@@ -104,25 +106,25 @@ export class Work {
     actFont    : any;
 
     // Timer vars
+    timer      : Timer;
     dispTime   : string;
-    startTime  : any;
-    timer      : number;
+    timeRem_ms : number;
 
     initState  : string;
 
-    timeRem_ms : number;
 
     constructor(actServ    : ActivitiesService,
                 router     : Router,
 		routerServ : RouterService,
+		timerServ  : TimerService,
                 params     : RouteParams) {
         console.log("work.ts: in constructor")
 
         this.actServ    = actServ;
         this.router     = router;
 	this.routerServ = routerServ;
+	this.timerServ  = timerServ;
 
-        this.startTime  = null;
         this.dispTime   = '';
         this.timer      = null;
 
@@ -140,20 +142,20 @@ export class Work {
             _this.resizeTimer();
         });
 
-        this.timer = null;
+	this.timer = this.timerServ.getTimer('work', function(type, diff_ms) {
+	    _this.updateDisplay(diff_ms);
+	});
 
         if (this.initState == 'start') {
             this.startTimer();
         } else {
-	    this.timeRem_ms = this.actServ.timeRemaining_ms();
+	    this.timeRem_ms = this.actServ.timeRemaining_ms(); // + 500; // 500ms for rounding
             this.timerDisplay(this.timeRem_ms);
 	}
 
         this.routerServ.subscribe('work', function(url) {
             if (!url.toLowerCase().startsWith('work/') && url != 'work') {
-                if (_this.timer) {
-                    _this.pauseTimer();
-                }
+		_this.pauseTimer();
             }
             console.log("In Work: router navigating to", url);
         });
@@ -208,11 +210,11 @@ export class Work {
         console.log("New height", height);
     }
 
-    updateDisplay() {
-        var now:any     = new Date();
-        var diff:number = now - this.startTime - 500; // 500ms rounding
-
-        this.timerDisplay(this.timeRem_ms - diff);
+    updateDisplay(diff_ms?:number) {
+	if (diff_ms === undefined) {
+	    diff_ms = this.timer.time_ms();
+	}
+        this.timerDisplay(this.timeRem_ms - diff_ms);
     }
 
     timerDisplay(time_ms) {
@@ -241,16 +243,10 @@ export class Work {
     startTimer() {
         var _this = this;
 
-	this.timeRem_ms = this.actServ.timeRemaining_ms();
+	this.timeRem_ms = this.actServ.timeRemaining_ms(); // + 500;  // 500ms for rounding
 
-        this.startTime  = new Date();
-
-        this.timer = setInterval(function() {
-            _this.updateDisplay();
-        }, 1000);
-
+	this.timer.start();
         this.updateDisplay();
-
         this.actServ.addActivityEvent('start');
     }
 
@@ -261,16 +257,14 @@ export class Work {
     pauseTimer(options?) {
         if (!options) { options = {}; }
 
-        if (this.timer) {
-            clearTimeout(this.timer);
-            this.timer = null;
-        }
-        this.updateDisplay();
+	// Get time before stopping timer
+	var diff_ms = this.timer.time_ms();
 
-        var now:any     = new Date();
-        var diff:number = now - this.startTime;
+	this.timer.stop();
 
-        this.timeRem_ms -= diff;
+        this.updateDisplay(diff_ms);
+
+        this.timeRem_ms -= diff_ms;
 
         if (!options.skipEvent) {
             this.actServ.addActivityEvent('break');

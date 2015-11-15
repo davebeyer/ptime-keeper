@@ -1,9 +1,10 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-class Timer {
+export class Timer {
     name         : string;
     timerId      : number;
     start_dt     : any;
+    stop_dt      : any;
     interval_ms  : number;
     subscriberCB : any;
 
@@ -15,8 +16,17 @@ class Timer {
 	this.name         = name;
 	this.timerId      = null;
 	this.start_dt     = null;
+	this.stop_dt      = null;
 	this.subscriberCB = subCB;
 	this.interval_ms  = interval_ms;
+    }
+
+    updateSubscriber(subCB:any, interval_ms?:number) {
+        this.subscriberCB = subCB;
+
+        if (interval_ms) {
+            this.interval_ms = interval_ms;
+        }
     }
 
     isRunning() {
@@ -24,24 +34,35 @@ class Timer {
     }
 
     time_ms() {
+	var stop_dt;
 	if (! this.isRunning() ) {
-	    return null;
-	} 
-	var now_dt:any     = new Date();
-	var diff_ms:number = now_dt - this.start_dt;
-	return diff_ms;
+	    if (this.stop_dt !== null) {
+		stop_dt = this.stop_dt;
+	    } else {
+		return null;
+	    }
+	}  else {
+	    stop_dt = new Date();
+	}
+
+	return stop_dt - this.start_dt;
     }
 
     start() {
 	var _this = this;
 
 	this.start_dt = new Date();
+	this.stop_dt  = null;
 
 	this.timerId  = setInterval(function() {
 	    if (_this.subscriberCB) {
 		var diff_ms = _this.time_ms();
 		console.log("Timer " + _this.name + " firing at " + diff_ms / 1000.0 + " secs");
-		_this.subscriberCB('tick', diff_ms);
+		try {
+		    _this.subscriberCB('tick', diff_ms);
+		} catch (err) {
+		    console.error("Timer: callback failed", _this);
+		}
 	    }
 	}, this.interval_ms);
     }
@@ -49,6 +70,7 @@ class Timer {
     stop() {
 	if (this.timerId) {
 	    clearTimeout(this.timerId);
+	    this.stop_dt = new Date();
 	    this.timerId = null;
 	}
     }
@@ -75,6 +97,8 @@ export class TimerService {
     getTimer(name:string, subCB: any, interval_ms?: number) {
 	if (! (name in this.timers)) {
 	    this.timers[name] = new Timer(name, subCB, interval_ms);
+	} else {
+	    this.timers[name].updateSubscriber(subCB);
 	}
 	return this.timers[name];
     }
