@@ -102,7 +102,7 @@ export class ActivitiesService {
         return new Promise(function(resolve, reject) {
             eventType = eventType.toLowerCase();
 
-            if (['start', 'break', 'complete'].indexOf(eventType) == -1) {
+            if (['start', 'break', 'later', 'complete'].indexOf(eventType) == -1) {
                 console.error("Invalid event type for addActivityEvent", eventType);
                 reject("Invalid event type: " + eventType);
                 return;
@@ -253,6 +253,7 @@ export class ActivitiesService {
                 start_dt = this.fBase.keyToDate(events[i]['created']);
                 break;
             case 'break':
+            case 'later':
             case 'complete':
                 if (start_dt !== null) {
                     end_dt   = this.fBase.keyToDate(events[i]['created']);
@@ -393,17 +394,6 @@ export class ActivitiesService {
 
         this.planDate    = momDT.format("ddd, DMMMYY");
         this.planTime    = momDT.format("h:mma");
-
-        // Update plan-title tooltip(s) (after DOM refreshed)
-        setTimeout(function() {
-            var title = _this.planDate + " Plan created at " + _this.planTime;
-            var $title = jQuery(".plan-title");
-            if ($title.attr('data-original-title') === undefined) {
-                $title.tooltip({placement: 'top'});
-            } else {
-                $title.attr('data-original-title', title).tooltip('fixTitle');
-            }
-        }, 10);
     }
 
     getCurrentPlan() {

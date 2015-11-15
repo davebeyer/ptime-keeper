@@ -45,7 +45,8 @@ declare var jQuery:any;
             <h2 class="col-xs-9 page-title plan-title"  title="{{actServ.planDate}} Plan created at {{actServ.planTime}}"> 
               {{actServ.planDate}} Plan 
             </h2>
-            <button (click)="startNewPlan($event)" class="col-xs-3 btn btn-default"> 
+            <button (click)="startNewPlan($event)" class="col-xs-3 btn btn-default" 
+                    title="Set this plan aside and start a new Plan">
               New plan
             </button>
           </div>
@@ -63,7 +64,7 @@ declare var jQuery:any;
                 <img *ng-for="#i of pomRange(act)" src="/img/tomato-tn.png"/>
               </div>
               <div class="col-xs-1 tight">
-                <div [hidden]="!actServ.isComplete(act['created'])">
+                <div [hidden]="!isActCompleted(act)">
                   <i class="fa fa-check"></i>
                 </div>
               </div>
@@ -73,18 +74,23 @@ declare var jQuery:any;
 
               <div class="col-xs-6 col-xs-offset-1 tight" style="padding-top:2px">
                 <button class="btn btn-default" [style.border-color]="actServ.categoryColor(act.category)"
-                        (click)="startActivity(act)">
+                        (click)="startActivity(act)"
+                         title="Start or restart work on this activity">
+
                   <i class="fa fa-play"></i> Start
                 </button>
+                <!-- use class since hidden property does not work on buttons -->
                 <button class="btn btn-default" [style.border-color]="actServ.categoryColor(act.category)"
-                        (click)="activityFinished(act)">
+                        (click)="activityFinished(act)" [class.hidden]="isActCompleted(act)"  
+                         title="This activity has been completed!">
                   <i class="fa fa-check"></i> Done
                 </button>
               </div>
 
               <div class="col-xs-3 col-xs-offset-2 tight" style="padding-top:2px">
                 <button class="btn btn-default" href="#" [style.border-color]="actServ.categoryColor(act.category)"
-                        (click)="delActivity(act)">
+                        (click)="delActivity(act)"
+                         title="Remove this activity from this plan">
                   <i class="fa fa-remove"></i> Delete
                 </button>
               </div>
@@ -130,7 +136,9 @@ declare var jQuery:any;
                   </div>
 
                   <div class="col-xs-1 tight">
-                    <button type="submit" class="btn btn-success" [disabled]="!fwork.valid"> + </button>
+                    <button type="submit" class="btn btn-success" [disabled]="!fwork.valid">
+                      + 
+	            </button>
                   </div>
                 </div>
 
@@ -179,7 +187,9 @@ declare var jQuery:any;
                 </div>
 
                 <div class="col-xs-1 tight">
-                  <button type="submit" class="btn btn-success" [disabled]="!fcat.valid">+</button>
+                  <button type="submit" class="btn btn-success" [disabled]="!fcat.valid">
+                    +
+                  </button>
                 </div>
               </div>
 
@@ -263,7 +273,7 @@ export class Plan  {
 
         this.newCatForm.controls['color'].valueChanges.observer({
             next : function(value) { 
-                console.log("New value for color", value); 
+                // console.log("New value for color", value); 
                 _this.selectedColor = value;
             }
         });
@@ -276,7 +286,7 @@ export class Plan  {
 
         this.newActForm.controls['cat'].valueChanges.observer({
             next : function(value) { 
-                console.log("New value for category", value); 
+                // console.log("New value for category", value); 
                 _this.selectedCategory = _this.actServ.categoryInfo(value);
                 if (_this.selectedCategory.name) {
                     // valid category, set mode in case the 'newCat' panel is open
@@ -290,6 +300,9 @@ export class Plan  {
         });
     }
 
+    /**
+     * Component lifecycle method
+     */
     onInit() {
         var _this = this;
 
@@ -310,6 +323,38 @@ export class Plan  {
             _this.resetCategoryForm(true);
             _this.resetActivityForm();
         });
+    }
+
+    /**
+     * Component lifecycle method called after vieew has been updated as needed.
+     */
+    afterViewChecked() {
+        // Add tooltips for all titled elements (incl possible new ones)
+        jQuery("[title]").each(function() {
+            var $this = jQuery(this);
+            if ($this.hasClass('plan-title')) {
+                return true;  // handled below
+            }
+            
+            if ($this.attr('data-original-title') !== undefined) {
+                return true; // Already has a tooltip
+            }
+
+            // Add tooltip
+            $this.tooltip({placement: 'top', delay : 500});
+        })
+
+
+        var $title = jQuery(".plan-title");
+
+        var title    = this.actServ.planDate + " Plan created at " + this.actServ.planTime;
+	var curTitle = $title.attr('data-original-title');
+
+        if (curTitle  === undefined) {
+            $title.tooltip({placement: 'top', delay : 500});
+        } else if (curTitle != title) {
+            $title.attr('data-original-title', title).tooltip('fixTitle');
+        }
     }
 
     //
@@ -507,6 +552,10 @@ export class Plan  {
     delActivity(activity) {
         this.actServ.delActivity(activity);
         this.actServ.clearWorkActivity(activity);
+    }
+
+    isActCompleted(activity) {
+	return this.actServ.isComplete(activity['created']);
     }
 
     //

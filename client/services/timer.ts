@@ -5,6 +5,7 @@ export class Timer {
     timerId      : number;
     start_dt     : any;
     stop_dt      : any;
+    accum_ms     : number;
     interval_ms  : number;
     subscriberCB : any;
 
@@ -15,8 +16,11 @@ export class Timer {
 
 	this.name         = name;
 	this.timerId      = null;
+
 	this.start_dt     = null;
 	this.stop_dt      = null;
+	this.accum_ms     = 0;
+
 	this.subscriberCB = subCB;
 	this.interval_ms  = interval_ms;
     }
@@ -33,7 +37,9 @@ export class Timer {
 	return (this.timerId !== null);
     }
 
-    time_ms() {
+    time_ms(options?:any) {
+	if (!options) { options = {}; }
+
 	var stop_dt;
 	if (! this.isRunning() ) {
 	    if (this.stop_dt !== null) {
@@ -45,19 +51,37 @@ export class Timer {
 	    stop_dt = new Date();
 	}
 
-	return stop_dt - this.start_dt;
+	var diff_ms = stop_dt - this.start_dt;
+	if (options.ignoreAccum) {
+	    return diff_ms;
+	} else {
+	    return diff_ms + this.accum_ms;
+	}
     }
 
-    start() {
+    start(options?:any) {
+	if (!options) { options = {}; }
+
+	if (this.isRunning()) {
+	    if (!options.restart) {
+		// Already running and restart option wasn't specified
+		return;
+	    }
+	}
+
 	var _this = this;
 
 	this.start_dt = new Date();
 	this.stop_dt  = null;
 
+	if (this.timerId) {
+	    clearTimeout(this.timerId);
+	}
+
 	this.timerId  = setInterval(function() {
 	    if (_this.subscriberCB) {
 		var diff_ms = _this.time_ms();
-		console.log("Timer " + _this.name + " firing at " + diff_ms / 1000.0 + " secs");
+		// console.log('"' + _this.name + '" timer firing at ' + diff_ms / 1000.0 + ' secs');
 		try {
 		    _this.subscriberCB('tick', diff_ms);
 		} catch (err) {
@@ -67,12 +91,19 @@ export class Timer {
 	}, this.interval_ms);
     }
 
-    stop() {
+    pause() {
 	if (this.timerId) {
+	    this.accum_ms += this.time_ms({ignoreAccum : true});
+
 	    clearTimeout(this.timerId);
 	    this.stop_dt = new Date();
 	    this.timerId = null;
 	}
+    }
+
+    stop() {
+	this.pause();
+	this.accum_ms = 0;
     }
 }
 
