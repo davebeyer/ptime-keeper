@@ -13,7 +13,7 @@ import {UserService}       from '../services/user';
 import {FirebaseService}   from '../services/firebase';
 import {ActivitiesService} from '../services/activities';
 
-import {randomInt}         from '../public/js/utils';
+import {randomInt, range}  from '../public/js/utils';
 
 declare var jQuery:any;
 
@@ -61,7 +61,7 @@ declare var jQuery:any;
               <div class="col-xs-4 tight"><b>{{actServ.categoryName(act.category)}}</b></div>
               <div class="col-xs-5 tight">{{act.description}}</div>
               <div class="col-xs-2 tight">
-                <img *ng-for="#i of pomRange(act)" src="/img/tomato-tn.png"/>
+                <img *ng-for="#i of actServ.pomRange(act)" src="/img/tomato-tn.png"/>
               </div>
               <div class="col-xs-1 tight">
                 <div [hidden]="!isActCompleted(act)">
@@ -361,21 +361,6 @@ export class Plan  {
     // Work category handling
     //
 
-    pomRange(activity) {
-        var est_mins     = activity.estimated_mins;
-        var pomTime_mins = parseInt(this.settings.getCachedSetting('work_mins'));
-        var numPoms      = Math.floor( (est_mins / pomTime_mins) + 0.5);
-        return this.range(numPoms);
-    }
-
-    range(num) {
-        var res = [];
-        for (var i=1; i<=num; i++) {
-            res.push(i);
-        }
-        return res;
-    }
-
     createNewCategory($event? : any) {
         if ($event) {
             $event.preventDefault();
@@ -578,6 +563,15 @@ export class Plan  {
     confirmNo() {
         // TODO: currently, only one type of confirmation
         this.viewMode = 'dfltMode';
+    }
+
+    //
+    // Misc
+    //
+
+    // Make utils.range() available to template
+    range(num) {
+        return range(num);
     }
 
 }

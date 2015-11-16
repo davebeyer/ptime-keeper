@@ -8,6 +8,8 @@ import {UserService}       from './user';
 import {SettingsService}   from '../services/settings';
 import {SaveMsg}           from '../components/savemsg';
 
+import {range}             from '../public/js/utils';
+
 var moment = require('moment');
 
 declare var jQuery:any;
@@ -228,6 +230,13 @@ export class ActivitiesService {
         }
 
         return completed;
+    }
+
+    pomRange(activity) {
+        var est_mins     = activity.estimated_mins;
+        var pomTime_mins = parseInt(this.settings.getCachedSetting('work_mins'));
+        var numPoms      = Math.floor( (est_mins / pomTime_mins) + 0.5);
+        return range(numPoms);
     }
 
     /**

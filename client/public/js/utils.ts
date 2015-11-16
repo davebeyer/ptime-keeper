@@ -255,11 +255,6 @@ export function convertListOfObjsToCSVStr(objList:any, options?:any) {
     return res;
 }
 
-////////////////////////////////////////////////////////////////////////
-//
-// Object utilities
-//
-
 //
 // Clone object, avoiding inherited properties
 //
@@ -322,6 +317,18 @@ export function clone(obj:any, ignores?:string[]) {
 //
 // Miscellaneous
 //
+
+//
+// range
+//
+
+export function range(num) {
+    var res = [];
+    for (var i=1; i<=num; i++) {
+        res.push(i);
+    }
+    return res;
+}
 
 //
 // check whether a valid number

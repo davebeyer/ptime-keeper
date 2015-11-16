@@ -83,6 +83,12 @@ declare var jQuery:any;
                 </span>
               </div>
 
+              <div class="abs-bottom right">
+                <span class="break-clock">
+                  <img *ng-for="#i of actServ.pomRange(act)" src="/img/tomato-tn.png"/>
+                </span>
+              </div>
+
             </div>
           </div>
 
