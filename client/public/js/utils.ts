@@ -324,7 +324,7 @@ export function clone(obj:any, ignores?:string[]) {
 
 export function range(num) {
     var res = [];
-    for (var i=1; i<=num; i++) {
+    for (var i=0; i<num; i++) {
         res.push(i);
     }
     return res;

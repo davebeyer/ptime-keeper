@@ -1,12 +1,16 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-import {Component, View}                     from 'angular2/angular2';
+import {Component, View, NgFor}              from 'angular2/angular2';
 import {RouteParams, Router}                 from 'angular2/router';
 
 import {ActivitiesService}    from '../services/activities';
 import {RouterService}        from '../services/router';
 import {TimerService, Timer}  from '../services/timer';
 import {SettingsService}      from '../services/settings';
+
+import {range}                from '../public/js/utils';
+
+import {Sounds}               from '../components/sounds';
 
 var moment = require('moment');
 
@@ -18,25 +22,31 @@ declare var jQuery:any;
 })
 
 @View({
+    directives: [NgFor],
+
     styles: [
         ".abs-center           {position:absolute; left:0; right:0; margin:0 auto;}",
         ".abs-top              {position:absolute;  top:0;}",
-        ".abs-top.left         {left:20px; right:auto; text-align:left;}",
-        ".abs-top.right        {right:20px; left: auto; text-align:right;}",
+        ".abs-top.left         {left:10px; right:auto; text-align:left;}",
+        ".abs-top.right        {right:10px; left: auto; text-align:right;}",
 
-        ".info-row             {margin: 30px 0 0 10px; width: calc(100% - 10px); display:flex; align-items:center;}",
+        ".abs-bottom           {position:absolute;  bottom:0;}",
+        ".abs-bottom.left      {left:20px; right: auto; text-align:left;}",
+        ".abs-bottom.right     {right:20px; left: auto; text-align:right;}",
+
+        ".info-row             {margin: 30px 0 0 0px; width: calc(100% - 10px); display:flex; align-items:center;}",
         ".act-title            {}",
         ".act-descr            {opacity : 0.6;}",
 
-        ".timer-clock          {font-weight:bold;}",
-        ".break-clock          {font-weight:bold; padding: 10px 20px;}",
+        ".timer-clock          {font-weight:bold; opacity:0.6}",
+        ".timer-clock.active   {opacity: 1.0}",
+        ".break-clock          {font-weight:bold; padding: 10px 20px}",
         ".timer-message        {font-weight:bold; width:50%;}",
 
         ".timer .btn           {background: transparent; border-width: 2px; transition: background .2s ease-in-out, border .2s ease-in-out;}",
-        ".timer img            {opacity : 0.6;}",
-        ".timer img.pulse      {opacity : 1.0;}"  /* when timer is running */
+        ".timer img.animated   {opacity : 0.6;}",
+        ".timer img.animated.pulse {opacity : 1.0;}"  /* when timer is running */
     ],
-
 
     template: `
         <div class="container">
@@ -53,8 +63,8 @@ declare var jQuery:any;
               </div>
 
               <div class="abs-center"  [style.bottom]="tmrBottom" [hidden]="noActivity()">
-                <span class="timer-clock" [style.font-size]="tmrFont" [style.color]="tmrColor">
-                  {{dispTime}}
+                <span class="timer-clock" [style.font-size]="tmrFont" [style.color]="workTmrColor" [class.active]="workTmr.isRunning()">
+                  {{workTmrDisp}}
                 </span>
               </div>
 
@@ -79,14 +89,15 @@ declare var jQuery:any;
 
               <div class="abs-top right" [hidden]="!breakTmr.isRunning()">
                 <span class="break-clock" [style.font-size]="iconFont">
-                  {{dispBreak}}
+                  {{breakTmrDisp}}
                 </span>
               </div>
 
-              <div class="abs-bottom right">
-                <span class="break-clock">
-                  <img *ng-for="#i of actServ.pomRange(act)" src="/img/tomato-tn.png"/>
-                </span>
+              <div class="abs-bottom left" [hidden]="noActivity()">
+                <img *ng-for="#i of leftPoms()" [style.opacity]="pomOpacity[i]" src="/img/tomato-xs.png"/>
+              </div>
+              <div class="abs-bottom right" [hidden]="noActivity()">
+                <img *ng-for="#i of rightPoms()" [style.opacity]="pomOpacity[i+4]" src="/img/tomato-xs.png"/>
               </div>
 
             </div>
@@ -97,19 +108,17 @@ declare var jQuery:any;
               <span class="act-title" [style.font-size]="actFont">{{actServ.workCategory()}}:</span>
               <span class="act-descr" [style.font-size]="descFont">{{actServ.workDescription()}}</span>
             </div>
-            <div class="col-xs-5 tight" [hidden]="noActivity()" style="white-space:nowrap">
+            <div class="col-xs-5 tight" [hidden]="noActivity()" style="white-space:nowrap; text-align:right;">
               <button class="done-btn btn btn-default"  [style.font-size]="descFont" [style.color]="actServ.workColor()" (click)="activityLater()" 
                 title="Set aside to be finished later">
-                <i class="fa fa-eject"></i> Later
+                <i class="fa fa-eject"></i> <!-- Later -->
               </button> &nbsp;
               <button class="done-btn btn btn-default"  [style.font-size]="descFont" [style.color]="actServ.workColor()" (click)="activityFinished()" 
                 title="This activity has been completed!">
-                <i class="fa fa-check"></i> Done
+                <i class="fa fa-check"></i> <!-- Done -->
               </button>
             </div>
           </div>
-
-          <audio id="success-sound" preload="auto" src="audio/completed1.mp3" type="audio/mp3"/>
 
         </div>
         `
@@ -121,13 +130,12 @@ export class Work {
     routerServ : RouterService;
     timerServ  : TimerService;
     settings   : SettingsService;
+    sounds     : Sounds;
 
     // CSS settings
     pomHeight  : any;
     pomWidth   : any;
     wrpHeight  : any;
-
-    tmrColor   : string;
 
     tmrBottom  : any;
     tmrFont    : any;
@@ -137,16 +145,22 @@ export class Work {
     actFont    : any;
 
     // Timer vars
-    workTmr    : Timer;
-    dispTime   : string;
-    work_ms    : number;
-    timeRem_ms : number;
+    workTmr       : Timer;
+    workTmrPrev   : number;
+    workTmrDisp   : string;
+    workTmrColor  : string;
 
-    breakTmr    : Timer;
-    break_ms    : number;
-    dispBreak   : string;
+    pomOpacity    : Array<number>;
 
-    initState  : string;
+    workPerPom_ms : number;
+    workPer_ms    : number;
+
+    breakTmr      : Timer;
+    breakPer_ms   : number;
+    breakTmrPrev  : number;
+    breakTmrDisp  : string;
+
+    initState     : string;
 
 
     constructor(actServ    : ActivitiesService,
@@ -154,6 +168,7 @@ export class Work {
                 routerServ : RouterService,
                 timerServ  : TimerService,
                 settings   : SettingsService,
+                sounds     : Sounds, 
                 params     : RouteParams) {
         console.log("work.ts: in constructor")
 
@@ -162,11 +177,14 @@ export class Work {
         this.routerServ = routerServ;
         this.timerServ  = timerServ;
         this.settings   = settings;
+        this.sounds     = sounds;
 
-        this.dispTime   = '';
+        this.workTmrPrev  = null
+        this.workTmrDisp  = '';
         this.workTmr      = null;
 
-        this.dispBreak    = '';
+        this.breakTmrPrev = null
+        this.breakTmrDisp = '';
         this.breakTmr     = null;
 
         this.resizeTimer();
@@ -187,28 +205,43 @@ export class Work {
         jQuery("[title]").tooltip({placement: 'top', delay : 500});
 
         this.workTmr = this.timerServ.getTimer('work', function(type, time_ms) {
-            _this.updateDisplay(time_ms);
+            var skipPoms = true;
+            // TODO: Add & use a count-DOWN timer!!
+            if (_this.workPer_ms > _this.workTmrPrev  &&  _this.workPer_ms <= time_ms) {
+                skipPoms = false;
+                _this.breakPer_ms = _this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000;
+                _this.sounds.play("break")
+            }
+            _this.updateWorkTmrDisp(time_ms, {skipOpacity: skipPoms});
+            _this.workTmrPrev = time_ms;
         });
 
         this.breakTmr = this.timerServ.getTimer('break', function(type, time_ms) {
-            _this.updateBreakDisplay(time_ms);
+            // TODO: Add & use a count-DOWN timer!!
+            if (_this.breakPer_ms > _this.breakTmrPrev  &&  _this.breakPer_ms <= time_ms) {
+                _this.sounds.play("work")
+            }
+
+            _this.updateBreakTmrDisp(time_ms);
+            _this.breakTmrPrev = time_ms;
         });
 
-	// Reset timers when returning to this view, which means that the user
-	// should finish their pomodoro before leaving view!
-	this.workTmr.reset();
-	this.breakTmr.reset();
+        // Reset timers when returning to this view, which means that the user
+        // should finish their pomodoro before leaving view!
+        this.workTmr.reset();
+        this.breakTmr.reset();
 
-        this.work_ms  = this.settings.getCachedSetting('work_mins') * 60 * 1000;
-        this.break_ms = this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000;
+        this.workPerPom_ms = this.settings.getCachedSetting('work_mins') * 60 * 1000;
 
-	this.timeRem_ms = null;
+        this.breakPer_ms = null;
+        this.workPer_ms  = null;
 
         if (this.initState == 'start') {
             this.startTimer();
         } else if (this.isActivity()) {
-	    this.timeRem_ms = this.workTimeRemaining_ms();
-	    this.updateDisplay();
+            this.workPer_ms  = this.workPeriod_ms();
+            this.breakPer_ms = 0;  // start with 0, get allotment when complete Pomodoro
+            this.updateWorkTmrDisp();
         }
 
         this.routerServ.subscribe('work', function(url) {
@@ -276,61 +309,94 @@ export class Work {
         console.log("New height", height);
     }
 
-    updateDisplay(diff_ms?:number) {
+    updateWorkTmrDisp(diff_ms?:number, options?:any) {
+        if (!options) { options = {}; }
+
         if (diff_ms === undefined) {
             diff_ms = this.workTmr.time_ms();
         }
-        this.dispTime = this.timerDisplay(this.timeRem_ms - diff_ms);
+
+        var disp = this.timerDisplay(this.workPer_ms - diff_ms);
+
+        this.workTmrDisp  = disp['time'];
+        this.workTmrColor = disp['color'];
+
+        if (!options.skipOpacity) {
+            this.updatePomOpacity();
+        }
     }
 
-    updateBreakDisplay(diff_ms?:number) {
+    updateBreakTmrDisp(diff_ms?:number) {
         if (diff_ms === undefined) {
             diff_ms = this.breakTmr.time_ms();
         }
-        this.dispBreak = this.timerDisplay(this.break_ms - diff_ms);
+
+        var disp = this.timerDisplay(this.breakPer_ms - diff_ms);
+
+        this.breakTmrDisp = disp['time'];
     }
 
-    timerDisplay(time_ms) {
-        var duration, neg;
 
-        // Next lower number of seconds (e.g., -5.6 => -6)
-        time_ms = Math.floor(time_ms / 1000.0) * 1000;
+    timerDisplay(time_ms:number) {
+        var duration, neg;
+        var colorVal, timeVal;
+
+        // Round to nearest seconds (e.g., -5.6 => -6)
+        time_ms = Math.floor((time_ms + 500) / 1000.0) * 1000;
 
         if (time_ms < 0) {
             duration  = moment.duration(-time_ms);
-            this.tmrColor = "#EEE";
+            colorVal = "#EEE";
             neg = "-";
         } else {
             duration  = moment.duration(time_ms);
-            this.tmrColor = "#444";
+            colorVal = "#444";
             neg = "";
         }
         
-        return neg + moment.utc(duration.asMilliseconds()).format("mm:ss")
+        timeVal = neg + moment.utc(duration.asMilliseconds()).format("mm:ss")
+
+        return {time : timeVal, color : colorVal};
     }
 
     //
     // Start, restart, pause, finished
     //
 
-    workTimeRemaining_ms() {
-        var res = this.actServ.timeRemaining_ms();
-	return Math.min(res, this.work_ms);
+    workPeriod_ms() {
+        var res_ms  = this.actServ.timeRemaining_ms();
+
+        if (res_ms < 0) {
+            // already used all of the estimated time, so just set to another work period
+            res_ms = this.workPerPom_ms; 
+        } else {
+            // Cap at one work period
+            res_ms = Math.min(res_ms, this.workPerPom_ms);
+
+            // Round up to nearest min
+            res_ms = Math.floor (res_ms/60000.0 + 0.999999) * 60000;  // round up to nearest min
+        }
+
+        return res_ms;
+
+        // var pomNum = this.onPomNum();
+        // return Math.min(this.workPerPom_ms, rem - this.workPerPom_ms * pomNum);
     }
 
     startTimer(options?:any) {
-	if (!options) { options = {}; }
+        if (!options) { options = {}; }
 
         var _this = this;
 
-	if (!options.restart || !this.timeRem_ms) {
-	    this.timeRem_ms = this.workTimeRemaining_ms();
-	}
+        // if (!options.restart || !this.workPer_ms) { ... }
+        this.workPer_ms  = this.workPeriod_ms();
+        this.breakPer_ms = 0;
 
         this.workTmr.start();
         this.breakTmr.pause();
 
-        this.updateDisplay();
+        this.updateWorkTmrDisp();
+
         this.actServ.addActivityEvent('start');
     }
 
@@ -347,12 +413,12 @@ export class Work {
         this.workTmr.stop();
         if (!options.notABreak) {
             this.breakTmr.start();
-            this.updateBreakDisplay();
+            this.updateBreakTmrDisp();
         }
 
-        this.updateDisplay(diff_ms);
+        this.updateWorkTmrDisp(diff_ms);
 
-        this.timeRem_ms -= diff_ms;
+        this.workPer_ms -= diff_ms; // actually this is unused now, since it's reset on restart
 
         if (!options.skipEvent && this.isActivity()) {
             this.actServ.addActivityEvent('break');
@@ -371,7 +437,7 @@ export class Work {
         var _this = this;
 
         this.leaveActivity('complete');
-        jQuery("#success-sound")[0].play();
+        this.sounds.play("completed")
 
         setTimeout(function() {
             _this.gotoPlan();
@@ -386,5 +452,52 @@ export class Work {
         setTimeout(function() {
             _this.gotoPlan();
         }, 700);
+    }
+
+    //
+    // Pomodoro rendering
+    //
+
+    leftPoms() {
+        var num = this.actServ.estNumPoms();
+        if (num < 4) {
+            return range(num);
+        } else {
+            return range(4);
+        }
+    }
+
+    rightPoms() {
+        var num = this.actServ.estNumPoms();
+        if (num > 4) {
+            return range(num - 4);
+        } else {
+            return [];
+        }
+    }
+
+    onPomNum() {
+        var estimated_ms = this.actServ.workEstimated_ms();
+        var worked_ms    = this.actServ.timeWorked_ms();
+        var numPoms      = this.actServ.estNumPoms();
+
+        var res = Math.floor( (worked_ms / estimated_ms ) * numPoms )
+
+        return Math.min(res, numPoms);
+    }
+
+    updatePomOpacity() {
+        var onPomNum = this.onPomNum();
+        var numPoms  = this.actServ.estNumPoms();
+        var num, val;
+
+        this.pomOpacity = [];
+
+        for (num = 0; num < this.actServ.estNumPoms(); num++) {
+            
+            if (num < onPomNum)      { val = 1.0; }
+            else                     { val = 0.3; }
+            this.pomOpacity[num] = val;
+        }
     }
 }

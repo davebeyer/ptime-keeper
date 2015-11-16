@@ -13,6 +13,8 @@ import {UserService}       from '../services/user';
 import {FirebaseService}   from '../services/firebase';
 import {ActivitiesService} from '../services/activities';
 
+import {Sounds}            from '../components/sounds';
+
 import {randomInt, range}  from '../public/js/utils';
 
 declare var jQuery:any;
@@ -33,7 +35,8 @@ declare var jQuery:any;
         ".tight                {padding: 0 5px;}",
         ".form-indent          {margin-left: 20px; width:calc(100% - 20px)}",
         ".colored-left-border  {border-left: 8px solid white;}",
-        ".new-section          {margin-top: 30px;}"
+        ".new-section          {margin-top: 30px;}",
+        ".done-percentage      {font-size: 12px;}"
     ],
 
     template: `
@@ -72,7 +75,7 @@ declare var jQuery:any;
 
             <div class="row editing" [style.border-left-color]="actServ.categoryColor(act.category)" [class.hidden]="!activityEditing[act['created']]">
 
-              <div class="col-xs-6 col-xs-offset-1 tight" style="padding-top:2px">
+              <div class="col-xs-6 tight" style="padding-top:2px">
                 <button class="btn btn-default" [style.border-color]="actServ.categoryColor(act.category)"
                         (click)="startActivity(act)"
                          title="Start or restart work on this activity">
@@ -87,7 +90,13 @@ declare var jQuery:any;
                 </button>
               </div>
 
-              <div class="col-xs-3 col-xs-offset-2 tight" style="padding-top:2px">
+              <div class="col-xs-3 tight" style="padding-top:2px">
+                <!--
+                <span class="done-percentage">{{act.completedMsg}}</span>
+                  -->
+              </div>
+
+              <div class="col-xs-3 tight" style="padding-top:2px">
                 <button class="btn btn-default" href="#" [style.border-color]="actServ.categoryColor(act.category)"
                         (click)="delActivity(act)"
                          title="Remove this activity from this plan">
@@ -131,7 +140,7 @@ declare var jQuery:any;
 
                   <div class="col-xs-2 tight">
                     <select class="form-control" ng-control="poms">
-                      <option *ng-for="#i of range(8)" value="{{i}}"> &nbsp;{{i}}&nbsp; </option>
+                      <option *ng-for="#i of range(8)" value="{{i+1}}"> &nbsp;{{i+1}}&nbsp; </option>
                     </select>
                   </div>
 
@@ -212,8 +221,6 @@ declare var jQuery:any;
           <button (click)="confirmNo($event)" class="btn btn-default">Cancel</button>
         </div>
 
-        <audio id="success-sound" preload="auto" src="audio/completed1.mp3" type="audio/mp3"/>
-
       </div>
         `
 })
@@ -231,6 +238,7 @@ export class Plan  {
     actServ          : ActivitiesService;
     settings         : SettingsService;
     saveMsg          : SaveMsg;
+    sounds           : Sounds;
 
     newCatForm       : ControlGroup;
     newActForm       : ControlGroup;
@@ -247,6 +255,7 @@ export class Plan  {
                 actServ  : ActivitiesService,
                 fb       : FormBuilder, 
                 saveMsg  : SaveMsg, 
+                sounds   : Sounds, 
                 fBase    : FirebaseService,
                 settings : SettingsService,
                 router   : Router) {
@@ -257,6 +266,7 @@ export class Plan  {
         this.actServ  = actServ;
         this.fBase    = fBase;
         this.saveMsg  = saveMsg;
+        this.sounds   = sounds;
         this.fb       = fb;
         this.router   = router;
         this.settings = settings;
@@ -530,7 +540,7 @@ export class Plan  {
     }
 
     activityFinished(activity) {
-        jQuery("#success-sound")[0].play();
+	this.sounds.play("completed")
         this.actServ.addActivityEvent('complete', activity['created']);
     }
 

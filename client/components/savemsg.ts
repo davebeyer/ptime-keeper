@@ -1,6 +1,6 @@
 /// <reference path="../../typings/tsd.d.ts" />
 
-import {Component, View, ElementRef} from 'angular2/angular2';
+import {Component, View} from 'angular2/angular2';
 
 declare var jQuery:any;
 

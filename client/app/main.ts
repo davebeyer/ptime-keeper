@@ -26,14 +26,14 @@ import {RouterService}     from '../services/router';
 import {TimerService}      from '../services/timer';
 
 import {SaveMsg}           from '../components/savemsg';
-
+import {Sounds}            from '../components/sounds';
 
 @Component({
     selector: 'app'
 })
 
 @View({
-    directives: [RouterOutlet, Header, Footer],
+    directives: [RouterOutlet, Header, Footer, Sounds],
 
     template: `
         <header></header>
@@ -41,6 +41,8 @@ import {SaveMsg}           from '../components/savemsg';
         <router-outlet></router-outlet>
 
         <footer></footer>
+
+        <sounds></sounds>
         `
 })
 
@@ -95,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function(){
 		  RouterService,
 		  TimerService,
 		  SaveMsg,
+		  Sounds,
                   ROUTER_PROVIDERS,
                   provide(LocationStrategy, {useClass: HashLocationStrategy})
               ]

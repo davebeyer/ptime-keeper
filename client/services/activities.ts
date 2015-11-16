@@ -152,6 +152,13 @@ export class ActivitiesService {
         return this.workActivity.description;
     }
 
+    workEstimated_ms() {
+        if (!this.workActivity) { 
+            return 0;
+        }
+        return this.workActivity.estimated_mins * 60 * 1000;
+    }
+
     workColor() {
         if (!this.workActivity) { 
             return 'black';
@@ -232,18 +239,46 @@ export class ActivitiesService {
         return completed;
     }
 
-    pomRange(activity) {
+    pomRange(activity?:any) {
+	return range(this.estNumPoms(activity));
+    }
+
+    estNumPoms(activity?:any) {
+        if (!activity) {
+            activity = this.workActivity;
+        }
+	if (!activity) {
+	    return 0;
+	}
+
         var est_mins     = activity.estimated_mins;
         var pomTime_mins = parseInt(this.settings.getCachedSetting('work_mins'));
-        var numPoms      = Math.floor( (est_mins / pomTime_mins) + 0.5);
-        return range(numPoms);
+
+        return Math.floor( (est_mins / pomTime_mins) + 0.5);
     }
 
     /**
      * Compute estimated time remaining on this activity, in msecs
      */
-    timeRemaining_ms(activityId? : string) {
 
+    timeRemaining_ms(activityId? : string) {
+        var activity = this.getActivity(activityId);
+        if (!activity) {
+            return 0;
+        }
+
+	var work_ms      = this.timeWorked_ms(activityId);
+
+        var estimated_ms = activity.estimated_mins * 60 * 1000;
+        
+        return estimated_ms - work_ms;
+    }
+
+    /**
+     * Compute time worked on this activity, in msecs
+     */
+
+    timeWorked_ms(activityId? : string) {
         var activity = this.getActivity(activityId);
         if (!activity) {
             return 0;
@@ -276,9 +311,7 @@ export class ActivitiesService {
             }
         }
 
-        var estimated_ms = activity.estimated_mins * 60 * 1000;
-        
-        return estimated_ms - work_ms;
+	return work_ms;
     }
 
     //

@@ -85,7 +85,7 @@ export class Timer {
 		try {
 		    _this.subscriberCB('tick', diff_ms);
 		} catch (err) {
-		    console.error("Timer: callback failed", _this);
+		    console.error("Timer: callback failed", err, _this);
 		}
 	    }
 	}, this.interval_ms);
