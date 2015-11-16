@@ -170,7 +170,7 @@ declare var jQuery:any;
 
             <div class="col-xs-12 tight" [hidden]="actServ.hasCategories()"> 
               <h3 style="margin-bottom:5px">Create your first work category</h3>
-              <p>(like "Math" or "Pay bills")</p>
+              <p>(like "Math" or "Psych")</p>
             </div>
           </div>
 

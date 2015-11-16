@@ -2,18 +2,14 @@
 
 export class Timer {
     name         : string;
+    options      : any;
+
     timerId      : number;
     start_dt     : any;
     stop_dt      : any;
     accum_ms     : number;
-    interval_ms  : number;
-    subscriberCB : any;
 
-    constructor(name:string, subCB:any, interval_ms?:number) {
-	if (!interval_ms) {
-	    interval_ms = 1000;   // 1 sec
-	}
-
+    constructor(name:string, options) {
 	this.name         = name;
 	this.timerId      = null;
 
@@ -21,16 +17,30 @@ export class Timer {
 	this.stop_dt      = null;
 	this.accum_ms     = 0;
 
-	this.subscriberCB = subCB;
-	this.interval_ms  = interval_ms;
+	this.options = { 
+	    callback    : null,
+	    interval_ms : 1000, // 1 sec
+	    mode        : 'countup'
+	}
+
+	this.updateOptions(options);
+
     }
 
-    updateSubscriber(subCB:any, interval_ms?:number) {
-        this.subscriberCB = subCB;
+    updateOptions(options) {
+	if (!options) { options = {}; }
+	
+	var keys = Object.keys(options);
+	var key;
 
-        if (interval_ms) {
-            this.interval_ms = interval_ms;
-        }
+	for (var i = 0; i < keys.length; i++) {
+	    key = keys[i];
+	    if (! (key in this.options) ) {
+		console.error("Invalid Timer option: ", key, options[key]);
+	    } else {
+		this.options[key] = options[key];  // overwrite default
+	    }
+	}
     }
 
     isRunning() {
@@ -79,16 +89,16 @@ export class Timer {
 	}
 
 	this.timerId  = setInterval(function() {
-	    if (_this.subscriberCB) {
+	    if (_this.options.callback) {
 		var diff_ms = _this.time_ms();
 		// console.log('"' + _this.name + '" timer firing at ' + diff_ms / 1000.0 + ' secs');
 		try {
-		    _this.subscriberCB('tick', diff_ms);
+		    _this.options.callback('tick', diff_ms);
 		} catch (err) {
 		    console.error("Timer: callback failed", err, _this);
 		}
 	    }
-	}, this.interval_ms);
+	}, this.options.interval_ms);
     }
 
     pause() {
@@ -130,12 +140,17 @@ export class TimerService {
 
     /**
      * Returns the named timer, creating one if needed.
+     * 
+     * Options: 
+     *   mode:        'countdown' (dflt), 'countup'
+     *   callback:    subscriber callback
+     *   interval_ms: callback interval in msecs
      */
-    getTimer(name:string, subCB: any, interval_ms?: number) {
+    getTimer(name:string, options) {
 	if (! (name in this.timers)) {
-	    this.timers[name] = new Timer(name, subCB, interval_ms);
+	    this.timers[name] = new Timer(name, options);
 	} else {
-	    this.timers[name].updateSubscriber(subCB);
+	    this.timers[name].updateOptions(options);
 	}
 	return this.timers[name];
     }

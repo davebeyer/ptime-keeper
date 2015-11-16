@@ -130,7 +130,7 @@ export class ActivitiesService {
             var path = 'activities/' + activityId + '/events/' + created;
 
             _this.userServ.updateUserData(newEvent, path).then(function() {
-                _this.saveMsg.flashMsg();
+                // _this.saveMsg.flashMsg();
                 _this.trackActivityEvent(activityId, newEvent);
                 resolve();
             });

@@ -204,26 +204,30 @@ export class Work {
         // Add tooltips for all titled elements
         jQuery("[title]").tooltip({placement: 'top', delay : 500});
 
-        this.workTmr = this.timerServ.getTimer('work', function(type, time_ms) {
-            var skipPoms = true;
-            // TODO: Add & use a count-DOWN timer!!
-            if (_this.workPer_ms > _this.workTmrPrev  &&  _this.workPer_ms <= time_ms) {
-                skipPoms = false;
-                _this.breakPer_ms = _this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000;
-                _this.sounds.play("break")
+        this.workTmr = this.timerServ.getTimer('work', {
+            callback : function(type, time_ms) {
+                var skipPoms = true;
+                // TODO: Add & use a count-DOWN timer!!
+                if (_this.workPer_ms > _this.workTmrPrev  &&  _this.workPer_ms <= time_ms) {
+                    skipPoms = false;
+                    _this.breakPer_ms = _this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000;
+                    _this.sounds.play("break")
+                }
+                _this.updateWorkTmrDisp(time_ms, {skipOpacity: skipPoms});
+                _this.workTmrPrev = time_ms;
             }
-            _this.updateWorkTmrDisp(time_ms, {skipOpacity: skipPoms});
-            _this.workTmrPrev = time_ms;
         });
 
-        this.breakTmr = this.timerServ.getTimer('break', function(type, time_ms) {
-            // TODO: Add & use a count-DOWN timer!!
-            if (_this.breakPer_ms > _this.breakTmrPrev  &&  _this.breakPer_ms <= time_ms) {
-                _this.sounds.play("work")
-            }
+        this.breakTmr = this.timerServ.getTimer('break', {
+            callback : function(type, time_ms) {
+                // TODO: Add & use a count-DOWN timer!!
+                if (_this.breakPer_ms > _this.breakTmrPrev  &&  _this.breakPer_ms <= time_ms) {
+                    _this.sounds.play("work")
+                }
 
-            _this.updateBreakTmrDisp(time_ms);
-            _this.breakTmrPrev = time_ms;
+                _this.updateBreakTmrDisp(time_ms);
+                _this.breakTmrPrev = time_ms;
+            }
         });
 
         // Reset timers when returning to this view, which means that the user
