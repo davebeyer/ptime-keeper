@@ -64,7 +64,8 @@ declare var jQuery:any;
               <div class="col-xs-4 tight"><b>{{actServ.categoryName(act.category)}}</b></div>
               <div class="col-xs-5 tight">{{act.description}}</div>
               <div class="col-xs-2 tight">
-                <img *ng-for="#i of actServ.pomRange(act)" src="/img/tomato-tn.png"/>
+                <img *ng-for="#i of donePomRange(act)" src="/img/tomato-tn.png" class="pomodoro-completed"/>
+                <img *ng-for="#i of todoPomRange(act)" src="/img/tomato-tn.png" class="pomodoro-todo"/>
               </div>
               <div class="col-xs-1 tight">
                 <div [hidden]="!isActCompleted(act)">
@@ -75,7 +76,7 @@ declare var jQuery:any;
 
             <div class="row editing" [style.border-left-color]="actServ.categoryColor(act.category)" [class.hidden]="!activityEditing[act['created']]">
 
-              <div class="col-xs-6 tight" style="padding-top:2px">
+              <div class="col-xs-7 tight" style="padding-top:2px">
                 <button class="btn btn-default" [style.border-color]="actServ.categoryColor(act.category)"
                         (click)="startActivity(act)"
                          title="Start or restart work on this activity">
@@ -90,7 +91,7 @@ declare var jQuery:any;
                 </button>
               </div>
 
-              <div class="col-xs-3 tight" style="padding-top:2px">
+              <div class="col-xs-2 tight" style="padding-top:2px">
                 <!--
                 <span class="done-percentage">{{act.completedMsg}}</span>
                   -->
@@ -551,6 +552,14 @@ export class Plan  {
 
     isActCompleted(activity) {
         return this.actServ.isComplete(activity['created']);
+    }
+
+    donePomRange(activity) {
+        return range(activity['onPomNum']);
+    }
+
+    todoPomRange(activity) {
+        return range(activity['estNumPoms'] - activity['onPomNum']);
     }
 
     //

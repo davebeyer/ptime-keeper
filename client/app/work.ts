@@ -181,6 +181,8 @@ export class Work {
         this.breakTmrDisp = '';
         this.breakTmr     = null;
 
+        this.pomOpacity = [];
+
         this.resizeTimer();
 
         this.initState = params.get('state');
@@ -201,12 +203,16 @@ export class Work {
         this.workTmr = this.timerServ.getTimer('work', {
             mode     : 'countdown',
             callback : function(type, time_ms) {
-                var skipPoms = true;
                 if (type == 'alarm') {
-                    skipPoms = false;
-                    _this.sounds.play("break")
-                }
-                _this.updateWorkTmrDisp(time_ms, {skipOpacity: skipPoms});
+                    _this.actServ.addActivityEvent('progress').then(function() {
+                        _this.updateWorkTmrDisp(time_ms, {skipOpacity: false});
+                    });
+
+                    _this.sounds.play("break");
+                } 
+                
+                // Immediately update time, whether or not updating opacity too
+                _this.updateWorkTmrDisp(time_ms, {skipOpacity: true});
             }
         });
 
@@ -380,7 +386,7 @@ export class Work {
         var _this = this;
 
         if (this.workTmr.time_ms() < 0) {
-	    console.log("Resetting due to work time of", this.workTmr.time_ms());
+            console.log("Resetting due to work time of", this.workTmr.time_ms());
             // If re-starting from a negative work timer, restart the timers 
             this.workTmr.reset();
             this.breakTmr.reset();
@@ -392,23 +398,25 @@ export class Work {
         this.workTmr.start();
         this.breakTmr.pause();
 
-        this.updateWorkTmrDisp();
-
-        this.actServ.addActivityEvent('start');
+        this.actServ.addActivityEvent('start').then(function() {
+            _this.updateWorkTmrDisp();
+        });
     }
 
     pauseTimer() {
+	var _this = this;
+
         // Get time before stopping timer
         var t_ms = this.workTmr.time_ms();
 
         this.workTmr.pause();
-        this.updateWorkTmrDisp(t_ms);
-
         this.breakTmr.start();
-        this.updateBreakTmrDisp();
 
         if (this.isActivity()) {
-            this.actServ.addActivityEvent('break');
+            this.actServ.addActivityEvent('break').then(function() {
+                _this.updateWorkTmrDisp(t_ms);
+                _this.updateBreakTmrDisp();
+            });
         }
     }
 
@@ -463,27 +471,19 @@ export class Work {
         }
     }
 
-    onPomNum() {
-        var estimated_ms = this.actServ.workEstimated_ms();
-        var worked_ms    = this.actServ.timeWorked_ms();
-        var numPoms      = this.actServ.estNumPoms();
-
-        var res = Math.floor( (worked_ms / estimated_ms ) * numPoms )
-
-        return Math.min(res, numPoms);
-    }
-
     updatePomOpacity() {
-        var onPomNum = this.onPomNum();
-        var numPoms  = this.actServ.estNumPoms();
+        this.actServ.updateWorkActivity();
+
+        var onPomNum = this.actServ.workOnPomNum();
+        var numPoms  = this.actServ.workEstNumPoms()
         var num, val;
 
         this.pomOpacity = [];
 
         for (num = 0; num < this.actServ.estNumPoms(); num++) {
             
-            if (num < onPomNum)      { val = 1.0; }
-            else                     { val = 0.3; }
+            if (num < onPomNum)      { val = 0.4; }
+            else                     { val = 1.0; }
             this.pomOpacity[num] = val;
         }
     }

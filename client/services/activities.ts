@@ -98,13 +98,19 @@ export class ActivitiesService {
         }
     }
 
+    updateWorkActivity() {
+	if (this.workActivity) {
+	    this.updateActivity(this.workActivity);
+	}
+    }
+
     addActivityEvent(eventType:string, activityId?:string) {
         var _this = this;
 
         return new Promise(function(resolve, reject) {
             eventType = eventType.toLowerCase();
 
-            if (['start', 'break', 'later', 'complete'].indexOf(eventType) == -1) {
+            if (['start', 'break', 'progress', 'later', 'complete'].indexOf(eventType) == -1) {
                 console.error("Invalid event type for addActivityEvent", eventType);
                 reject("Invalid event type: " + eventType);
                 return;
@@ -165,6 +171,22 @@ export class ActivitiesService {
         }
 
         return this.categoryColor(this.workActivity.category);
+    }
+
+    workOnPomNum() {
+        if (!this.workActivity) { 
+            return 0;
+        }
+
+        return this.workActivity['onPomNum'];
+    }
+
+    workEstNumPoms() {
+        if (!this.workActivity) { 
+            return 0;
+        }
+
+        return this.workActivity['estNumPoms'];
     }
 
     getActivity(activityId?:string) {
@@ -240,21 +262,38 @@ export class ActivitiesService {
     }
 
     pomRange(activity?:any) {
-	return range(this.estNumPoms(activity));
+        return range(this.estNumPoms(activity));
     }
 
     estNumPoms(activity?:any) {
         if (!activity) {
             activity = this.workActivity;
         }
-	if (!activity) {
-	    return 0;
-	}
+        if (!activity) {
+            return 0;
+        }
 
         var est_mins     = activity.estimated_mins;
         var pomTime_mins = parseInt(this.settings.getCachedSetting('work_mins'));
 
         return Math.floor( (est_mins / pomTime_mins) + 0.5);
+    }
+
+    onPomNum(activity?:any) {
+        if (!activity) {
+            activity = this.workActivity;
+        }
+        if (!activity) {
+            return 0;
+        }
+
+        var estimated_ms = activity.estimated_mins * 60 * 1000;
+        var worked_ms    = this.timeWorked_ms(activity['created']);
+        var numPoms      = this.estNumPoms(activity);
+
+        var res = Math.floor( (worked_ms / estimated_ms ) * numPoms )
+
+        return Math.min(res, numPoms);
     }
 
     /**
@@ -267,7 +306,7 @@ export class ActivitiesService {
             return 0;
         }
 
-	var work_ms      = this.timeWorked_ms(activityId);
+        var work_ms      = this.timeWorked_ms(activityId);
 
         var estimated_ms = activity.estimated_mins * 60 * 1000;
         
@@ -297,6 +336,7 @@ export class ActivitiesService {
                 start_dt = this.fBase.keyToDate(events[i]['created']);
                 break;
             case 'break':
+            case 'progress':
             case 'later':
             case 'complete':
                 if (start_dt !== null) {
@@ -311,7 +351,7 @@ export class ActivitiesService {
             }
         }
 
-	return work_ms;
+        return work_ms;
     }
 
     //
@@ -490,8 +530,21 @@ export class ActivitiesService {
     //
 
     trackActivity(id, info) {
-        this.activities.push(info);        
-        this.activityDict[id] = info;
+        if ( !(id in this.activityDict) ) {
+            this.activities.push(info);        
+            this.activityDict[id] = info;
+        }
+
+	this.updateActivity(info);
+    }
+
+    /**
+     * Update calculated data for this activity, such as Pomodoros-completed status
+     */ 
+
+    updateActivity(activity) {
+        activity['onPomNum']   = this.onPomNum(activity);
+        activity['estNumPoms'] = this.estNumPoms(activity);
     }
 
     trackActivityEvent(activityId, newEvent) {
