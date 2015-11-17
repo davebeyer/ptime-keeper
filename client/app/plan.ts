@@ -540,7 +540,7 @@ export class Plan  {
     }
 
     activityFinished(activity) {
-	this.sounds.play("completed")
+        this.sounds.play("completed")
         this.actServ.addActivityEvent('complete', activity['created']);
     }
 

@@ -75,7 +75,7 @@ declare var jQuery:any;
                   </button>
                 </span>
                 <span  [hidden]="workTmr.isRunning()">
-                  <button (click)="restartTimer($event)" class="btn btn-default" [style.font-size]="iconFont" style="padding:0 15px">
+                  <button (click)="startTimer()" class="btn btn-default" [style.font-size]="iconFont" style="padding:0 15px">
                     <i class="fa fa-play"></i>
                   </button>
                 </span>
@@ -146,18 +146,14 @@ export class Work {
 
     // Timer vars
     workTmr       : Timer;
-    workTmrPrev   : number;
     workTmrDisp   : string;
     workTmrColor  : string;
 
     pomOpacity    : Array<number>;
 
     workPerPom_ms : number;
-    workPer_ms    : number;
 
     breakTmr      : Timer;
-    breakPer_ms   : number;
-    breakTmrPrev  : number;
     breakTmrDisp  : string;
 
     initState     : string;
@@ -179,11 +175,9 @@ export class Work {
         this.settings   = settings;
         this.sounds     = sounds;
 
-        this.workTmrPrev  = null
         this.workTmrDisp  = '';
         this.workTmr      = null;
 
-        this.breakTmrPrev = null
         this.breakTmrDisp = '';
         this.breakTmr     = null;
 
@@ -205,28 +199,25 @@ export class Work {
         jQuery("[title]").tooltip({placement: 'top', delay : 500});
 
         this.workTmr = this.timerServ.getTimer('work', {
+            mode     : 'countdown',
             callback : function(type, time_ms) {
                 var skipPoms = true;
-                // TODO: Add & use a count-DOWN timer!!
-                if (_this.workPer_ms > _this.workTmrPrev  &&  _this.workPer_ms <= time_ms) {
+                if (type == 'alarm') {
                     skipPoms = false;
-                    _this.breakPer_ms = _this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000;
                     _this.sounds.play("break")
                 }
                 _this.updateWorkTmrDisp(time_ms, {skipOpacity: skipPoms});
-                _this.workTmrPrev = time_ms;
             }
         });
 
         this.breakTmr = this.timerServ.getTimer('break', {
+            mode     : 'countdown',
             callback : function(type, time_ms) {
-                // TODO: Add & use a count-DOWN timer!!
-                if (_this.breakPer_ms > _this.breakTmrPrev  &&  _this.breakPer_ms <= time_ms) {
+                if (type == 'alarm') {
                     _this.sounds.play("work")
                 }
 
                 _this.updateBreakTmrDisp(time_ms);
-                _this.breakTmrPrev = time_ms;
             }
         });
 
@@ -235,16 +226,14 @@ export class Work {
         this.workTmr.reset();
         this.breakTmr.reset();
 
-        this.workPerPom_ms = this.settings.getCachedSetting('work_mins') * 60 * 1000;
+        this.workPerPom_ms  = this.settings.getCachedSetting('work_mins') * 60 * 1000;
 
-        this.breakPer_ms = null;
-        this.workPer_ms  = null;
+        this.breakTmr.fromTime_ms(this.settings.getCachedSetting('shortBreak_mins') * 60 * 1000);
 
         if (this.initState == 'start') {
             this.startTimer();
         } else if (this.isActivity()) {
-            this.workPer_ms  = this.workPeriod_ms();
-            this.breakPer_ms = 0;  // start with 0, get allotment when complete Pomodoro
+            this.workTmr.fromTime_ms(this.workPeriod_ms());
             this.updateWorkTmrDisp();
         }
 
@@ -313,14 +302,14 @@ export class Work {
         console.log("New height", height);
     }
 
-    updateWorkTmrDisp(diff_ms?:number, options?:any) {
+    updateWorkTmrDisp(t_ms?:number, options?:any) {
         if (!options) { options = {}; }
 
-        if (diff_ms === undefined) {
-            diff_ms = this.workTmr.time_ms();
+        if (t_ms === undefined) {
+            t_ms = this.workTmr.time_ms();
         }
 
-        var disp = this.timerDisplay(this.workPer_ms - diff_ms);
+        var disp = this.timerDisplay(t_ms);
 
         this.workTmrDisp  = disp['time'];
         this.workTmrColor = disp['color'];
@@ -330,12 +319,12 @@ export class Work {
         }
     }
 
-    updateBreakTmrDisp(diff_ms?:number) {
-        if (diff_ms === undefined) {
-            diff_ms = this.breakTmr.time_ms();
+    updateBreakTmrDisp(t_ms?:number) {
+        if (t_ms === undefined) {
+            t_ms = this.breakTmr.time_ms();
         }
 
-        var disp = this.timerDisplay(this.breakPer_ms - diff_ms);
+        var disp = this.timerDisplay(t_ms);
 
         this.breakTmrDisp = disp['time'];
     }
@@ -387,14 +376,18 @@ export class Work {
         // return Math.min(this.workPerPom_ms, rem - this.workPerPom_ms * pomNum);
     }
 
-    startTimer(options?:any) {
-        if (!options) { options = {}; }
-
+    startTimer() {
         var _this = this;
 
-        // if (!options.restart || !this.workPer_ms) { ... }
-        this.workPer_ms  = this.workPeriod_ms();
-        this.breakPer_ms = 0;
+        if (this.workTmr.time_ms() < 0) {
+	    console.log("Resetting due to work time of", this.workTmr.time_ms());
+            // If re-starting from a negative work timer, restart the timers 
+            this.workTmr.reset();
+            this.breakTmr.reset();
+        }
+
+        // Update work period in case there's less than one Pomodoro remaining
+        this.workTmr.fromTime_ms(this.workPeriod_ms())
 
         this.workTmr.start();
         this.breakTmr.pause();
@@ -404,33 +397,23 @@ export class Work {
         this.actServ.addActivityEvent('start');
     }
 
-    restartTimer() {
-        this.startTimer({restart : true});
-    }
-
-    pauseTimer(options?) {
-        if (!options) { options = {}; }
-
+    pauseTimer() {
         // Get time before stopping timer
-        var diff_ms = this.workTmr.time_ms();
+        var t_ms = this.workTmr.time_ms();
 
-        this.workTmr.stop();
-        if (!options.notABreak) {
-            this.breakTmr.start();
-            this.updateBreakTmrDisp();
-        }
+        this.workTmr.pause();
+        this.updateWorkTmrDisp(t_ms);
 
-        this.updateWorkTmrDisp(diff_ms);
+        this.breakTmr.start();
+        this.updateBreakTmrDisp();
 
-        this.workPer_ms -= diff_ms; // actually this is unused now, since it's reset on restart
-
-        if (!options.skipEvent && this.isActivity()) {
+        if (this.isActivity()) {
             this.actServ.addActivityEvent('break');
         }
     }
 
     leaveActivity(eventType?:string) {
-        this.pauseTimer({skipEvent : true, notABreak : true});
+        this.workTmr.stop();
         this.breakTmr.stop();
         if (eventType) {
             this.actServ.addActivityEvent(eventType);
