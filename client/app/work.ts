@@ -363,7 +363,8 @@ export class Work {
     //
 
     workPeriod_ms() {
-        var res_ms  = this.actServ.timeRemaining_ms();
+        this.actServ.updateWorkActivity();
+        var res_ms = this.actServ.timeRemaining_ms();
 
         if (res_ms < 0) {
             // already used all of the estimated time, so just set to another work period
@@ -377,9 +378,6 @@ export class Work {
         }
 
         return res_ms;
-
-        // var pomNum = this.onPomNum();
-        // return Math.min(this.workPerPom_ms, rem - this.workPerPom_ms * pomNum);
     }
 
     startTimer() {

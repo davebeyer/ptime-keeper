@@ -189,6 +189,7 @@ export class ActivitiesService {
         return this.workActivity['estNumPoms'];
     }
 
+
     getActivity(activityId?:string) {
         var res;
         if (activityId) {
@@ -288,7 +289,7 @@ export class ActivitiesService {
         }
 
         var estimated_ms = activity.estimated_mins * 60 * 1000;
-        var worked_ms    = this.timeWorked_ms(activity['created']);
+        var worked_ms    = activity['timeWorked_ms'];
         var numPoms      = this.estNumPoms(activity);
 
         var res = Math.floor( (worked_ms / estimated_ms ) * numPoms )
@@ -306,7 +307,7 @@ export class ActivitiesService {
             return 0;
         }
 
-        var work_ms      = this.timeWorked_ms(activityId);
+        var work_ms      = activity['timeWorked_ms'];
 
         var estimated_ms = activity.estimated_mins * 60 * 1000;
         
@@ -317,12 +318,7 @@ export class ActivitiesService {
      * Compute time worked on this activity, in msecs
      */
 
-    timeWorked_ms(activityId? : string) {
-        var activity = this.getActivity(activityId);
-        if (!activity) {
-            return 0;
-        }
-
+    timeWorked_ms(activity) {
         var events   = this.getEvents(activity);
 
         var work_ms  = 0;
@@ -347,7 +343,7 @@ export class ActivitiesService {
                 }
                 break;
             default:
-                console.error("Invalid event type in timeRemaining_ms()", activityId, events[i].type);
+                console.error("Invalid event type in timeRemaining_ms()", activity, events[i].type);
             }
         }
 
@@ -474,7 +470,8 @@ export class ActivitiesService {
         var planDT       = this.fBase.keyToDate(planId);
         var momDT        = moment(planDT);
 
-        this.planDate    = momDT.format("ddd, DMMMYY");
+        // this.planDate    = momDT.format("ddd, DMMMYY");
+        this.planDate    = momDT.format("DMMMYY");
         this.planTime    = momDT.format("h:mma");
     }
 
@@ -543,8 +540,10 @@ export class ActivitiesService {
      */ 
 
     updateActivity(activity) {
-        activity['onPomNum']   = this.onPomNum(activity);
-        activity['estNumPoms'] = this.estNumPoms(activity);
+        activity['estNumPoms']    = this.estNumPoms(activity);
+	activity['timeWorked_ms'] = this.timeWorked_ms(activity);
+        activity['onPomNum']      = this.onPomNum(activity);  // do last, as it relies on above
+	activity['completedPerc'] = 100.0 * activity['timeWorked_ms'] / (activity['estimated_mins'] * 60.0 * 1000.0) ;
     }
 
     trackActivityEvent(activityId, newEvent) {

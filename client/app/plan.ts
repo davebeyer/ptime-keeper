@@ -76,7 +76,7 @@ declare var jQuery:any;
 
             <div class="row editing" [style.border-left-color]="actServ.categoryColor(act.category)" [class.hidden]="!activityEditing[act['created']]">
 
-              <div class="col-xs-7 tight" style="padding-top:2px">
+              <div class="col-xs-9 tight" style="padding-top:2px">
                 <button class="btn btn-default" [style.border-color]="actServ.categoryColor(act.category)"
                         (click)="startActivity(act)"
                          title="Start or restart work on this activity">
@@ -89,12 +89,12 @@ declare var jQuery:any;
                          title="This activity has been completed!">
                   <i class="fa fa-check"></i> Done
                 </button>
-              </div>
 
-              <div class="col-xs-2 tight" style="padding-top:2px">
-                <!--
-                <span class="done-percentage">{{act.completedMsg}}</span>
-                  -->
+                &nbsp;
+
+                <span class="done-percentage" title="The relative amount of time worked on this activity as a percentage of that estimated.">
+                  {{completedMsg(act)}}
+                </span>
               </div>
 
               <div class="col-xs-3 tight" style="padding-top:2px">
@@ -560,6 +560,11 @@ export class Plan  {
 
     todoPomRange(activity) {
         return range(activity['estNumPoms'] - activity['onPomNum']);
+    }
+
+    completedMsg(activity) {
+        var num = parseFloat(activity['completedPerc']).toFixed(0);
+        return num  + '%';
     }
 
     //
